@@ -1,0 +1,42 @@
+{
+  "name": "interactive-queen-empire-globe",
+  "version": "1.0.0-pre",
+  "description": "A project generated from aunty's svelte project template.",
+  "license": "MIT",
+  "private": true,
+  "contributors": [
+    "Joshua Byrd <phocks@gmail.com>"
+  ],
+  "aunty": {
+    "type": "svelte"
+  },
+  "scripts": {
+    "start": "aunty serve",
+    "test": "aunty test"
+  },
+  "devDependencies": {
+    "@abcnews/aunty": "^13.0.3",
+    "@testing-library/svelte": "^3.2.1",
+    "@types/jest": "^29.0.1",
+    "@types/webpack-env": "^1.18.0"
+  },
+  "dependencies": {
+    "@abcnews/alternating-case-to-object": "^3.0.2",
+    "@abcnews/env-utils": "^3.0.1",
+    "@abcnews/mount-utils": "^2.0.0",
+    "canvas-dpi-scaler": "^0.0.3",
+    "d3-array": "^3.2.0",
+    "d3-color": "^3.1.0",
+    "d3-drag": "^3.0.0",
+    "d3-geo": "^3.0.1",
+    "d3-interpolate": "^3.0.1",
+    "d3-queue": "^3.0.7",
+    "d3-request": "^1.0.6",
+    "d3-scale": "^4.0.2",
+    "d3-selection": "^3.0.0",
+    "d3-transition": "^3.0.1",
+    "svelte": "^3.50.1",
+    "svelte-scrollyteller": "^0.0.8",
+    "topojson-client": "^3.1.0"
+  }
+}
