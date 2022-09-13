@@ -121,9 +121,7 @@
           projection.rotate(lerpRotation(t));
           draw();
 
-          if (t === 1) {
-            onComplete();
-          }
+          t === 1 && onComplete();
         };
       });
   }
