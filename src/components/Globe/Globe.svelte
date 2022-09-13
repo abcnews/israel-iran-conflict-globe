@@ -8,10 +8,12 @@
   // Internal imports
   import worldJson from './world.json';
   import countriesJson from './countries.json';
+  import countryCodes from './countryCodes.json';
 
   export let background = 'hsl(0, 0%, 98%)';
-  export let zoom = 100;
+  export let zoom;
   export let duration = 1250;
+  export let focus = 'AU';
 
   let isInitialised = false;
   let rootEl;
@@ -53,9 +55,9 @@
     f.properties.name = countriesJson[f.id.toString()] || '';
     f.properties.center = d3.geoCentroid(f);
     f.properties.colour = '#377f8c';
+    f.properties.code = countryCodes.find(country => country.Numeric.toString() === f.id.toString())?.Alpha2;
     return f;
   });
-  console.log(COUNTRIES);
   const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
 
   const toDegrees = kms => kms / 111.319444;
@@ -65,6 +67,13 @@
       return c.properties.name.toLowerCase() === name.toLowerCase();
     })[0];
   };
+
+  function getCenter(countryCode: string, countries): number[] {
+    if (typeof countryCode === 'undefined') return ORIGIN;
+    const foundCountry = countries.find(c => c.properties?.code?.toLowerCase() === countryCode.toLocaleLowerCase());
+    if (!foundCountry) return ORIGIN;
+    return foundCountry.properties.center;
+  }
 
   function getMargin(width, height) {
     let percentage = width < 700 ? 0.05 : 0.15;
@@ -349,7 +358,8 @@
     isDrawing = false;
   }
 
-  $: setScaleAndPosition(zoom, ORIGIN, isInitialised ? duration : 0);
+  $: center = getCenter(focus, COUNTRIES);
+  $: setScaleAndPosition(zoom, center, duration);
 
   onMount(() => {
     canvas = d3.select(rootEl).append('canvas').style('display', 'block').attr('width', width).attr('height', height);
@@ -368,7 +378,7 @@
     path = d3.geoPath().projection(projection).context(context);
 
     // Set initial position instantly
-    setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
+    // setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
   });
 </script>
 
