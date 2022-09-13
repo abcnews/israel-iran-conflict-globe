@@ -10,7 +10,10 @@
   import countriesJson from './countries.json';
 
   export let background = 'hsl(0, 0%, 98%)';
+  export let zoom = 100;
+  export let duration = 1250;
 
+  let isInitialised = false;
   let rootEl;
   let canvas;
   let width = window.innerWidth;
@@ -52,6 +55,7 @@
     f.properties.colour = '#377f8c';
     return f;
   });
+  console.log(COUNTRIES);
   const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
 
   const toDegrees = kms => kms / 111.319444;
@@ -345,6 +349,8 @@
     isDrawing = false;
   }
 
+  $: setScaleAndPosition(zoom, ORIGIN, isInitialised ? duration : 0);
+
   onMount(() => {
     canvas = d3.select(rootEl).append('canvas').style('display', 'block').attr('width', width).attr('height', height);
     context = canvas.node().getContext('2d');
@@ -361,7 +367,8 @@
 
     path = d3.geoPath().projection(projection).context(context);
 
-    setScaleAndPosition(100, ORIGIN, 5000);
+    // Set initial position instantly
+    setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
   });
 </script>
 

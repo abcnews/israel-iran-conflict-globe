@@ -11,10 +11,12 @@
 
   let number = 0;
   let stProgress;
+  let globeScale = 100;
 
   const markerChangeHandler = marker => {
     console.log(marker);
     number = marker.number;
+    globeScale = Math.random() * 150 + 100;
   };
 
   const progressChangeHandler = progress => {
@@ -30,7 +32,7 @@
   customPanel={CustomPanel}
 >
   <div class="graphic">
-    <Globe />
+    <Globe zoom={globeScale} />
   </div>
 </Scrollyteller>
 

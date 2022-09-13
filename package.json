@@ -12,6 +12,7 @@
   },
   "scripts": {
     "start": "aunty serve",
+    "deploy": "aunty build && aunty deploy",
     "test": "aunty test"
   },
   "devDependencies": {
