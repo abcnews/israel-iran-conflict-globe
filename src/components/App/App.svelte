@@ -38,7 +38,7 @@
   </div>
 </Scrollyteller>
 
-<style>
+<style lang="scss">
   .graphic {
     height: 100%;
     width: 100%;
@@ -47,6 +47,7 @@
   }
 
   :global(.u-layout > div.interactive-globe) {
+    // Fix for Odyssey 
     margin-left: calc(-50vw + 0px + 50%) !important;
     width: calc(100vw - 0px);
   }
