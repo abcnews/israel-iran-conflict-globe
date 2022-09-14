@@ -68,12 +68,12 @@
   const LAND_STROKE_COLOUR = '#94a1a4';
 
   // Map Features
-  const LAND = topojson.feature(worldJson, worldJson.objects.land);
+  const LAND = topojson.feature(worldJson, worldJson.objects.countries);
   const COUNTRIES = topojson.feature(worldJson, worldJson.objects.countries).features.map(f => {
-    f.properties.name = countriesJson[f.id.toString()] || '';
+    f.properties.name = countriesJson[f.id?.toString()] || '';
     f.properties.center = d3.geoCentroid(f);
     f.properties.colour = '#377f8c';
-    f.properties.code = countryCodes.find(country => country.Numeric.toString() === f.id.toString())?.Alpha2;
+    f.properties.code = countryCodes.find(country => country.Numeric.toString() === f.id?.toString())?.Alpha2;
     return f;
   });
   const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
