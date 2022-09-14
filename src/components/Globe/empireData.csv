@@ -1,80 +1,80 @@
-Modern country,Historical country,Start date,End date,Notes,Partial?
-Anguilla,Anguilla,1650,3000,,FALSE
-Antigua and Barbuda,Barbuda,1628,1981,,FALSE
-Australia,Australia,1770,1931,,FALSE
-Bahamas,Bahamas,1629,1973,,FALSE
-Bahrain,Bahrain,1629,1973,,FALSE
-Bangladesh,Bangladesh,1661,1947,,FALSE
-Barbados,Barbados,1624,1966,,FALSE
-Belize,British Honduras,1638,1981,,FALSE
-Bermuda,Bermuda,1609,3000,,FALSE
-Botswana,Bechuanaland,1885,1966,,FALSE
-British Antarctic Territory,British Antarctic Territory,1819,3000,,FALSE
-British Indian Ocean Territory,Chagos Archipelago,1810,3000,,FALSE
-British Virgin Islands,British Virgin Islands,1666,3000,,FALSE
-Brunei,Brunei,1888,1984,,FALSE
-Canada,Canada except Newfoundland,1670,1931,,FALSE
-Cayman Islands,Cayman Islands,1670,3000,,FALSE
-Cyprus,Cyprus,1878,1960,,FALSE
-Dominica,Dominica,1761,1978,,FALSE
-Egypt,Egypt,1882,1922,,FALSE
-Eswatini,Swaziland,1890,1968,,FALSE
-Falkland Islands,Falkland Islands,1766,3000,,FALSE
-Fiji,Fiji,1871,1970,,FALSE
-Gambia,Gambia,1661,1965,,FALSE
-Ghana,Gold Coast,1621,1957,,FALSE
-Gibraltar,Gibraltar,1704,3000,,FALSE
-Grenada,Grenada,1762,1974,,FALSE
-Guyana,British Guiana,1796,1966,,FALSE
-Hong Kong,Hong Kong,1841,1997,,FALSE
-India,India,1661,1947,,FALSE
-Iraq,Iraq,1915,1932,,FALSE
-Ireland,Ireland,1169,1931,,FALSE
-Israel,Israel,1917,1948,,FALSE
-Jamaica,Jamaica,1655,1962,,FALSE
-Jordan,Transjordan,1917,1946,,FALSE
-Kenya,Kenya,1887,1963,,FALSE
-Kuwait,Kuwait,1899,1961,,FALSE
-Lesotho,Basutoland,1868,1966,,FALSE
-Malawi,Nyasaland,1889,1964,,FALSE
-Malaysia,Sarawak,1841,1963,,FALSE
-Malta,Malta,1798,1964,,FALSE
-Mauritius,Mauritius,1810,1968,,FALSE
-Montserrat,Montserrat,1632,3000,,FALSE
-Myanmar,Burma,1824,1948,,FALSE
-Namibia,South West Africa,1915,1931,,FALSE
-Nauru,Nauru,1914,1968,,FALSE
-New Zealand,New Zealand,1769,1931,,FALSE
-Nicaragua,Mosquito Coast,1658,1894,,TRUE
-Nigeria,Nigeria,1861,1960,,FALSE
-Oman,Oman,1861,1971,,FALSE
-Pakistan,Pakistan,1661,1947,,FALSE
-Palestine,Palestine,1917,1948,,FALSE
-Papua New Guinea,British New Guinea,1884,1914,,TRUE
-Papua New Guinea,German New Guinea,1914,1975,,FALSE
-Qatar,Qatar,1868,1971,,FALSE
-Samoa,Western Samoa,1914,1962,,FALSE
-Seychelles,Seychelles,1794,1976,,FALSE
-Sierra Leone,Sierra Leone,1787,1961,,FALSE
-Singapore,Singapore,1824,1978,,FALSE
-Solomon Islands,Solomon Islands,1893,1978,,FALSE
-Somalia,British Somaliland,1884,1960,Is part of Somalia but has declared itself an independent country,TRUE
-South Africa,South Africa,1806,1931,,FALSE
-South Sudan,South Sudan,1898,1956,,FALSE
-Sri Lanka,Ceylon,1795,1948,,FALSE
-St Helena,St Helena,1651,3000,,FALSE
-St Kitts and Nevis,St Kitts,1623,1983,,FALSE
-St Lucia,St Lucia,1605,1979,,FALSE
-St Vincent and the Grenadines,St Vincent and the Grenadines,1627,1979,Are the Grenadines separate?,FALSE
-Sudan,Sudan,1898,1956,,FALSE
-Tanzania,Tanganyika,1916,1961,,FALSE
-Trinidad and Tobago,Tobago,1762,1962,,FALSE
-Turks and Caicos,Turks and Caicos,1678,3000,,FALSE
-Uganda,Uganda,1890,1962,,FALSE
-United Arab Emirates,Trucial States,1820,1971,,FALSE
-United Kingdom,United Kingdom,0,3000,,FALSE
-USA,USA,1607,1776,Thirteen colonies,TRUE
-Vanuatu,New Hebrides,1887,1980,,FALSE
-Yemen,Aden,1839,1967,,FALSE
-Zambia,Northern Rhodesia,1889,1964,,FALSE
-Zimbabwe,Rhodesia,1888,1980,The white minority government declared independence in 1965 which was not recognised by the international community,FALSE
+Country Code,Modern country,Historical country,Start date,End date,Notes,Partial
+AI,Anguilla,Anguilla,1650,3000,,FALSE
+AG,Antigua and Barbuda,Barbuda,1628,1981,,FALSE
+AU,Australia,Australia,1770,1931,,FALSE
+BS,Bahamas,Bahamas,1629,1973,,FALSE
+BH,Bahrain,Bahrain,1629,1973,,FALSE
+BD,Bangladesh,Bangladesh,1661,1947,,FALSE
+BB,Barbados,Barbados,1624,1966,,FALSE
+BZ,Belize,British Honduras,1638,1981,,FALSE
+BM,Bermuda,Bermuda,1609,3000,,FALSE
+BW,Botswana,Bechuanaland,1885,1966,,FALSE
+AQ,British Antarctic Territory,British Antarctic Territory,1819,3000,Needs shape file for specific area,FALSE
+IO,British Indian Ocean Territory,Chagos Archipelago,1810,3000,,FALSE
+VG,British Virgin Islands,British Virgin Islands,1666,3000,,FALSE
+BN,Brunei,Brunei,1888,1984,,FALSE
+CA,Canada,Canada except Newfoundland,1670,1931,,FALSE
+KY,Cayman Islands,Cayman Islands,1670,3000,,FALSE
+CY,Cyprus,Cyprus,1878,1960,,FALSE
+DM,Dominica,Dominica,1761,1978,,FALSE
+EG,Egypt,Egypt,1882,1922,,FALSE
+SZ,Eswatini,Swaziland,1890,1968,,FALSE
+FK,Falkland Islands,Falkland Islands,1766,3000,,FALSE
+FJ,Fiji,Fiji,1871,1970,,FALSE
+GM,Gambia,Gambia,1661,1965,,FALSE
+GH,Ghana,Gold Coast,1621,1957,,FALSE
+GI,Gibraltar,Gibraltar,1704,3000,,FALSE
+GD,Grenada,Grenada,1762,1974,,FALSE
+GY,Guyana,British Guiana,1796,1966,,FALSE
+HK,Hong Kong,Hong Kong,1841,1997,,FALSE
+IN,India,India,1661,1947,,FALSE
+IQ,Iraq,Iraq,1915,1932,,FALSE
+IE,Ireland,Ireland,1169,1931,,FALSE
+IL,Israel,Israel,1917,1948,,FALSE
+JM,Jamaica,Jamaica,1655,1962,,FALSE
+JO,Jordan,Transjordan,1917,1946,,FALSE
+KE,Kenya,Kenya,1887,1963,,FALSE
+KW,Kuwait,Kuwait,1899,1961,,FALSE
+LS,Lesotho,Basutoland,1868,1966,,FALSE
+MW,Malawi,Nyasaland,1889,1964,,FALSE
+MY,Malaysia,Sarawak,1841,1963,,FALSE
+MT,Malta,Malta,1798,1964,,FALSE
+MU,Mauritius,Mauritius,1810,1968,,FALSE
+MS,Montserrat,Montserrat,1632,3000,,FALSE
+MM,Myanmar,Burma,1824,1948,,FALSE
+NA,Namibia,South West Africa,1915,1931,,FALSE
+NR,Nauru,Nauru,1914,1968,,FALSE
+NZ,New Zealand,New Zealand,1769,1931,,FALSE
+NI,Nicaragua,Mosquito Coast,1658,1894,,TRUE
+NG,Nigeria,Nigeria,1861,1960,,FALSE
+OM,Oman,Oman,1861,1971,,FALSE
+PK,Pakistan,Pakistan,1661,1947,,FALSE
+PS,Palestine,Palestine,1917,1948,,FALSE
+PG,Papua New Guinea,British New Guinea,1884,1914,,TRUE
+PG1,Papua New Guinea,German New Guinea,1914,1975,Split in two,FALSE
+QA,Qatar,Qatar,1868,1971,,FALSE
+WS,Samoa,Western Samoa,1914,1962,,FALSE
+SC,Seychelles,Seychelles,1794,1976,,FALSE
+SL,Sierra Leone,Sierra Leone,1787,1961,,FALSE
+SG,Singapore,Singapore,1824,1978,,FALSE
+SB,Solomon Islands,Solomon Islands,1893,1978,,FALSE
+SO,Somalia,British Somaliland,1884,1960,Is part of Somalia but has declared itself an independent country,TRUE
+ZA,South Africa,South Africa,1806,1931,,FALSE
+SS,South Sudan,South Sudan,1898,1956,,FALSE
+LK,Sri Lanka,Ceylon,1795,1948,,FALSE
+SH,St Helena,St Helena,1651,3000,,FALSE
+KN,St Kitts and Nevis,St Kitts,1623,1983,,FALSE
+LC,St Lucia,St Lucia,1605,1979,,FALSE
+VC,St Vincent and the Grenadines,St Vincent and the Grenadines,1627,1979,Are the Grenadines separate?,FALSE
+SD,Sudan,Sudan,1898,1956,,FALSE
+TZ,Tanzania,Tanganyika,1916,1961,,FALSE
+TT,Trinidad and Tobago,Tobago,1762,1962,,FALSE
+TC,Turks and Caicos,Turks and Caicos,1678,3000,,FALSE
+UG,Uganda,Uganda,1890,1962,,FALSE
+AE,United Arab Emirates,Trucial States,1820,1971,,FALSE
+GB,United Kingdom,United Kingdom,0,3000,,FALSE
+US,USA,USA,1607,1776,Thirteen colonies,TRUE
+VU,Vanuatu,New Hebrides,1887,1980,,FALSE
+YE,Yemen,Aden,1839,1967,,FALSE
+ZM,Zambia,Northern Rhodesia,1889,1964,,FALSE
+ZW,Zimbabwe,Rhodesia,1888,1980,The white minority government declared independence in 1965 which was not recognised by the international community,FALSE
