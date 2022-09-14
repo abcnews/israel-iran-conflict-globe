@@ -59,7 +59,7 @@
       globe
     );
 
-  const INITIAL_SCALE = projection.scale();
+  let INITIAL_SCALE = projection.scale();
   let scale = INITIAL_SCALE;
 
   const ORIGIN = [-0.118092, 51.509865]; // London
@@ -161,6 +161,78 @@
   }
 
   /**
+   * Animate a change in scale for the globe
+   * @param {number} scale Percentage of initial scale
+   * @param {number} duration A time in milliseconds
+   * @param {bool} bounce Should the camera zoom out further than needed in the zoom tween arc
+   * @param {function} onComplete A function to run when the tween has finished
+   */
+  function setScale(scale, duration, bounce, onComplete) {
+    if (typeof duration === 'undefined') duration = 1000;
+
+    scale = scale;
+    scale = (INITIAL_SCALE * scale) / 100;
+
+    d3.select({})
+      .transition()
+      .duration(duration)
+      .tween('zoom', () => {
+        const scale0 = projection.scale();
+        const lerp = interpolateScale(scale0, scale, bounce);
+        return t => {
+          projection.scale(lerp(t));
+          draw();
+
+          if (t === 1) {
+            onComplete && onComplete();
+          }
+        };
+      });
+  }
+
+  /**
+   * Animate the focused location of the globe
+   * @param {array|string} position [lat, lng] or name of country
+   * @param {number} duration A time in milliseconds
+   * @param {function} onComplete A function to run when the tween has finished
+   */
+  function setPosition(position, duration, onComplete) {
+    if (typeof duration === 'undefined') duration = 1000;
+    if (typeof position === 'string') position = findCountry(position).properties.center;
+
+    d3.select({})
+      .transition()
+      .duration(duration)
+      .tween('rotation', () => {
+        const rotation0 = projection.rotate();
+        const lerp = d3.interpolate(rotation0, [-position[0], -position[1]]);
+        return t => {
+          projection.rotate(lerp(t));
+          draw();
+
+          if (t === 1) {
+            onComplete && onComplete();
+          }
+        };
+      });
+  }
+
+  /**
+   * Animate a change in location of the globe
+   * @param {array} vector [x, y] in kilometres to be added to the current [lat, lng] position
+   * @param {number} duration A time in milliseconds
+   * @param {function} onComplete A function to run when the tween has finished
+   */
+  function rotateBy(vector, duration, onComplete) {
+    if (typeof duration === 'undefined') duration = 1000;
+
+    const rotation0 = projection.rotate();
+    const newPosition = [-rotation0[0] + toDegrees(vector[0]), -rotation0[1] + toDegrees(vector[1])];
+
+    setPosition(newPosition, duration, onComplete);
+  }
+
+  /**
    * Draw a frame to the canvas
    */
   function draw(props = {}) {
@@ -255,6 +327,8 @@
       ],
       globe
     );
+    // On different sized screens we want to reset this "constant"
+    INITIAL_SCALE = projection.scale();
 
     // Keep scale at the percentage it was before the resize
     projection.scale((projection.scale() * scale) / 100);
