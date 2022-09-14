@@ -4,16 +4,30 @@
   import d3 from './d3';
   import canvasDpiScaler from 'canvas-dpi-scaler';
   import { onMount } from 'svelte';
+  import rangeInclusive from 'range-inclusive';
 
   // Internal imports
   import worldJson from './world.json';
   import countriesJson from './countries.json';
   import countryCodes from './countryCodes.json';
+  import empireData from './empireData.json';
+
+  // Format data to determine if in empire or not
+  const earliestYear = 1169;
+  const latestYear = 2022;
+  const empireYears = rangeInclusive(earliestYear, latestYear);
+  const empireMap = new Map();
+
+  empireYears.forEach((year: number) => {
+    const countriesIn = empireData.filter(country => year >= country['Start date'] && year <= country['End date']);
+    empireMap.set(year, { in: countriesIn });
+  });
 
   export let background = 'hsl(0, 0%, 98%)';
-  export let zoom;
+  export let zoom = 100;
   export let duration = 1250;
   export let focus = 'AU';
+  export let year = 1901;
 
   let isInitialised = false;
   let rootEl;
@@ -24,6 +38,7 @@
   let canvasElement;
   let path;
   let isDrawing = false;
+  let countriesToHighlight = [];
 
   const globe = { type: 'Sphere' };
 
@@ -44,7 +59,7 @@
   const INITIAL_SCALE = projection.scale();
   let scale = INITIAL_SCALE;
 
-  const ORIGIN = [-0.118092, 51.509865];
+  const ORIGIN = [-0.118092, 51.509865]; // London
   const OCEAN_COLOUR = 'hsl(195, 29%, 92%)';
   const LAND_COLOUR = '#FFFFFF';
   const LAND_STROKE_COLOUR = 'rgba(29, 60, 67, 0.5)';
@@ -59,6 +74,12 @@
     return f;
   });
   const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
+
+  $: {
+    const inCurrentYear = empireMap.get(year).in;
+    const countryCodeArray = inCurrentYear.map(country => country['Country Code']);
+    countriesToHighlight = COUNTRIES.filter(country => countryCodeArray.includes(country.properties.code));
+  }
 
   const toDegrees = kms => kms / 111.319444;
   const wait = m => new Promise((resolve, reject) => setTimeout(resolve, m));
@@ -155,20 +176,20 @@
     c.fill();
     c.stroke();
 
+    // Highlight a country
+    countriesToHighlight.forEach(country => {
+      c.beginPath();
+      c.fillStyle = 'salmon';
+      path(country);
+      c.fill();
+    });
+
     // Draw country outlines
     c.beginPath();
     c.strokeStyle = LAND_STROKE_COLOUR;
     c.lineWidth = 1.1;
     path(BORDERS);
     c.stroke();
-
-    // // Highlight a country
-    // this.highlightedCountries.forEach(country => {
-    //   c.beginPath();
-    //   c.fillStyle = country.properties.colour;
-    //   this.path(country);
-    //   c.fill();
-    // });
 
     // // Draw any shapes
     // (props.config.shapes || []).forEach(shape => {

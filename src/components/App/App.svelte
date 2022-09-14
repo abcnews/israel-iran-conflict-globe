@@ -12,13 +12,15 @@
   let number = 0;
   let stProgress;
   let globeScale = 100;
-  let countryCode = 'AU';
+  let countryCodeFocus = 'AU';
+  let year = 1901;
 
   const markerChangeHandler = marker => {
     console.log(marker);
     number = marker.number;
     globeScale = marker.zoom || 100;
-    countryCode = marker.focus || 'GB';
+    countryCodeFocus = marker.focus || 'GB';
+    year = marker.year || 1901;
   };
 
   const progressChangeHandler = progress => {
@@ -34,7 +36,7 @@
   customPanel={CustomPanel}
 >
   <div class="graphic">
-    <Globe zoom={globeScale} focus={countryCode} />
+    <Globe zoom={globeScale} focus={countryCodeFocus} {year} />
   </div>
 </Scrollyteller>
 
