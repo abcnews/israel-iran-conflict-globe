@@ -9,24 +9,22 @@
 
   export let scrollyData;
 
-  let number = 0;
-  let stProgress;
+  const DEFAULT_DURATION = 1500;
+
   let globeScale = 100;
-  let countryCodeFocus = 'AU';
+  let countryCodeFocus = 'GB';
   let year = 1901;
+  let duration = 1500;
 
   const markerChangeHandler = marker => {
     console.log(marker);
-    number = marker.number;
-    globeScale = marker.zoom || 100;
+    globeScale = marker.zoom || globeScale;
     countryCodeFocus = marker.focus || 'GB';
-    year = marker.year || 1901;
+    year = marker.year || year;
+    duration = marker.duration || DEFAULT_DURATION;
   };
 
-  const progressChangeHandler = progress => {
-    // console.log(progress);
-    stProgress = progress;
-  };
+  const progressChangeHandler = progress => {};
 </script>
 
 <Scrollyteller
@@ -36,7 +34,7 @@
   customPanel={CustomPanel}
 >
   <div class="graphic">
-    <Globe zoom={globeScale} focus={countryCodeFocus} {year} />
+    <Globe zoom={globeScale} focus={countryCodeFocus} {year} {duration} />
   </div>
 </Scrollyteller>
 
@@ -46,5 +44,10 @@
     width: 100%;
     background-color: 'hsl(0, 0%, 98%)';
     display: flex;
+  }
+
+  :global(.u-layout > div.interactive-globe) {
+    margin-left: calc(-50vw + 0px + 50%) !important;
+    width: calc(100vw - 0px);
   }
 </style>

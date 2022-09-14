@@ -17,6 +17,8 @@ whenOdysseyLoaded.then(() => {
 
   const appMountEl = scrollyData.mountNode;
 
+  appMountEl.classList.add("interactive-globe")
+
   // [appMountEl] = selectMounts('interactivequeenempireglobe');
 
   if (appMountEl) {

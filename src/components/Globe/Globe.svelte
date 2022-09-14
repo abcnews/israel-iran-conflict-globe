@@ -29,6 +29,8 @@
   export let focus = 'AU';
   export let year = 1901;
 
+  let innerWidth;
+  let innerHeight;
   let isInitialised = false;
   let rootEl;
   let canvas;
@@ -39,6 +41,7 @@
   let path;
   let isDrawing = false;
   let countriesToHighlight = [];
+  let countriesToHighlightPartial = [];
 
   const globe = { type: 'Sphere' };
 
@@ -60,9 +63,9 @@
   let scale = INITIAL_SCALE;
 
   const ORIGIN = [-0.118092, 51.509865]; // London
-  const OCEAN_COLOUR = 'hsl(195, 29%, 92%)';
+  const OCEAN_COLOUR = 'hsl(216, 100%, 97%)';
   const LAND_COLOUR = '#FFFFFF';
-  const LAND_STROKE_COLOUR = 'rgba(29, 60, 67, 0.5)';
+  const LAND_STROKE_COLOUR = '#94a1a4';
 
   // Map Features
   const LAND = topojson.feature(worldJson, worldJson.objects.land);
@@ -77,8 +80,18 @@
 
   $: {
     const inCurrentYear = empireMap.get(year).in;
-    const countryCodeArray = inCurrentYear.map(country => country['Country Code']);
+    const inCurrentYearFull = inCurrentYear.filter(country => !country.Partial);
+    const inCurrentYearPartial = inCurrentYear.filter(country => country.Partial);
+
+    // Get full highlight countries
+    const countryCodeArray = inCurrentYearFull.map(country => country['Country Code']);
     countriesToHighlight = COUNTRIES.filter(country => countryCodeArray.includes(country.properties.code));
+
+    // Get partial highlight countries
+    const countryCodePartialArray = inCurrentYearPartial.map(country => country['Country Code']);
+    countriesToHighlightPartial = COUNTRIES.filter(country =>
+      countryCodePartialArray.includes(country.properties.code)
+    );
   }
 
   const toDegrees = kms => kms / 111.319444;
@@ -154,8 +167,6 @@
     if (isDrawing) return;
     isDrawing = true;
 
-    // props = props || this.props;
-
     const c = context.canvas ? context : canvas.node().getContext('2d');
 
     // c.fillStyle = c.fillRect(0, 0, width, height);
@@ -179,7 +190,7 @@
     // Highlight a country
     countriesToHighlight.forEach(country => {
       c.beginPath();
-      c.fillStyle = 'salmon';
+      c.fillStyle = 'hsl(220, 100%, 27%)';
       path(country);
       c.fill();
     });
@@ -187,9 +198,20 @@
     // Draw country outlines
     c.beginPath();
     c.strokeStyle = LAND_STROKE_COLOUR;
-    c.lineWidth = 1.1;
+    c.lineWidth = 1.4;
     path(BORDERS);
     c.stroke();
+
+    // Partial highlights
+    countriesToHighlightPartial.forEach(country => {
+      c.beginPath();
+      c.strokeStyle = '#002683';
+      c.lineWidth = 1.4;
+      c.fillStyle = '#ADBFE0';
+      path(country);
+      c.fill();
+      c.stroke();
+    });
 
     // // Draw any shapes
     // (props.config.shapes || []).forEach(shape => {
@@ -251,7 +273,7 @@
 
     // Draw the nice thin actual outline of the globe
     c.beginPath();
-    c.strokeStyle = '#B6CED6';
+    c.strokeStyle = '#b5cdd5';
     c.lineWidth = 2;
     projection.scale(projection.scale() - 5);
     path(globe);
@@ -377,8 +399,40 @@
     isDrawing = false;
   }
 
+  function getContext() {
+    return context.canvas ? context : canvas.node().getContext('2d');
+  }
+
+  function onResize(localWidth: number, localHeight: number) {
+    if (!canvas) return;
+
+    // Don't bother resizing if the change is just the mobile browser bars
+    if (window.innerHeight < height && window.innerHeight > height - 80) return;
+
+    width = window.innerWidth;
+    height = window.innerHeight;
+
+    canvas.attr('width', width).attr('height', height);
+
+    margin = getMargin(width, height);
+    projection.translate([width / 2, height / 2]).fitExtent(
+      [
+        [margin, margin],
+        [width - margin, height - margin]
+      ],
+      globe
+    );
+
+    // Keep scale at the percentage it was before the resize
+    projection.scale((projection.scale() * scale) / 100);
+
+    canvasDpiScaler(canvasElement, getContext());
+    draw();
+  }
+
   $: center = getCenter(focus, COUNTRIES);
-  $: setScaleAndPosition(zoom, center, duration);
+  $: isInitialised && setScaleAndPosition(zoom, center, duration);
+  $: onResize(innerWidth, innerHeight);
 
   onMount(() => {
     canvas = d3.select(rootEl).append('canvas').style('display', 'block').attr('width', width).attr('height', height);
@@ -397,11 +451,13 @@
     path = d3.geoPath().projection(projection).context(context);
 
     // Set initial position instantly
-    // setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
+    setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
   });
 </script>
 
 <div bind:this={rootEl} />
+
+<svelte:window bind:innerWidth bind:innerHeight />
 
 <style lang="scss">
 </style>

@@ -9,7 +9,7 @@ BB,Barbados,Barbados,1624,1966,,FALSE
 BZ,Belize,British Honduras,1638,1981,,FALSE
 BM,Bermuda,Bermuda,1609,3000,,FALSE
 BW,Botswana,Bechuanaland,1885,1966,,FALSE
-AQ,British Antarctic Territory,British Antarctic Territory,1819,3000,Needs shape file for specific area,FALSE
+AQ,British Antarctic Territory,British Antarctic Territory,1819,3000,Needs shape file for specific area,TRUE
 IO,British Indian Ocean Territory,Chagos Archipelago,1810,3000,,FALSE
 VG,British Virgin Islands,British Virgin Islands,1666,3000,,FALSE
 BN,Brunei,Brunei,1888,1984,,FALSE

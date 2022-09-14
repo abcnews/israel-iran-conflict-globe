@@ -96,7 +96,7 @@
     "Start date": 1819,
     "End date": 3000,
     "Notes": "Needs shape file for specific area",
-    "Partial": false
+    "Partial": true
   },
   {
     "Country Code": "IO",
