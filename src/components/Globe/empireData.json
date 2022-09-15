@@ -531,13 +531,13 @@
     "Partial": false
   },
   {
-    "Country Code": "SO",
-    "Modern country": "Somalia",
+    "Country Code": "XX",
+    "Modern country": "Somaliland",
     "Historical country": "British Somaliland",
     "Start date": 1884,
     "End date": 1960,
     "Notes": "Is part of Somalia but has declared itself an independent country",
-    "Partial": true
+    "Partial": false
   },
   {
     "Country Code": "ZA",

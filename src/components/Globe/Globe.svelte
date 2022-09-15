@@ -14,7 +14,8 @@
   import countryCodes from './countryCodes.json';
   import empireData from './empireData.json';
   import worldComplex from './world-stripped.json';
-  import antarcticaJson from './antarctica.json';
+  import gibraltarJson from './gibraltar.json';
+  import britishIndianOceanTerritoryJson from './britishIndianOceanTerritory.json';
 
   // Format data to determine if in empire or not
   const earliestYear = 1169;
@@ -26,7 +27,7 @@
     const countriesIn = empireData.filter(country => year >= country['Start date'] && year <= country['End date']);
     empireLookup.set(year, { in: countriesIn });
 
-    // Special cases
+    // Special cases, only UK, and ALL ever
     empireLookup.set(0, { in: empireData.filter(country => country['Country Code'] === 'GB') });
     empireLookup.set(4000, { in: empireData });
   });
@@ -50,6 +51,7 @@
   let isDrawing = false;
   let countriesToHighlight = [];
   let countriesToHighlightPartial = [];
+  let countriesToRing = [];
 
   const globe = { type: 'Sphere' };
 
@@ -74,19 +76,44 @@
   const OCEAN_COLOUR = 'hsl(216, 100%, 97%)';
   const LAND_COLOUR = '#FFFFFF';
   const LAND_STROKE_COLOUR = '#94a1a4';
-  const GLOBE_OUTLINE_COLOR = '#69788C';
+  const GLOBE_OUTLINE_COLOR = '#CCCCCC';
+  const HIGHLIGHT_COLOR = 'hsl(220, 100%, 27%)';
+  const RING_OPACITY = 0.5;
 
   // Map Features (Keeping because of missing Antarctica)
-  const LAND = topojson.feature(worldJson, worldJson.objects.countries);
+  // TODO: Integrate into more complex map
+  // const LAND = topojson.feature(worldJson, worldJson.objects.countries);
   const COUNTRIES = topojson.feature(worldJson, worldJson.objects.countries).features.map(f => {
     f.properties.name = countriesJson[f.id?.toString()] || '';
     f.properties.center = d3.geoCentroid(f);
-    f.properties.colour = '#377f8c';
     f.properties.code = countryCodes.find(country => country.Numeric.toString() === f.id?.toString())?.Alpha2;
     return f;
   });
   // const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
   const antarctica = findCountryByCode('AQ', COUNTRIES);
+
+  const [gibraltar] = topojson.feature(gibraltarJson, gibraltarJson.objects.gibraltar).features.map(feature => {
+    feature.properties.name = feature.properties.name || '';
+    feature.properties.center = d3.geoCentroid(feature);
+    feature.properties.code = 'GI';
+    return feature;
+  });
+  console.log(COUNTRIES);
+  console.log(gibraltar);
+
+  console.log(britishIndianOceanTerritoryJson);
+  const [britishIndianOceanTerritory] = topojson
+    .feature(britishIndianOceanTerritoryJson, britishIndianOceanTerritoryJson.objects.britishIndianOcean)
+    .features.map(feature => {
+      feature.properties.name = feature.properties.name || '';
+      feature.properties.center = d3.geoCentroid(feature);
+      feature.properties.code = 'IO';
+      return feature;
+    });
+  console.log(COUNTRIES);
+  console.log(britishIndianOceanTerritory);
+
+  // const britishIndianOceanTerritories = findCountryByCode('IO', COUNTRIES);
 
   // More complex world
   const land = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
@@ -99,9 +126,20 @@
       feature.properties.code = feature.properties.iso_a2;
       return feature;
     });
-  const countries: any = [...countriesSansAntarctica, antarctica];
-  console.log(countries)
+  const countries: any = [...countriesSansAntarctica, antarctica, gibraltar, britishIndianOceanTerritory];
   const borders = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
+
+  // Calculate area of polygon km^2
+  function getArea(country) {
+    return geoJsonArea.geometry(country.geometry) / 1000000;
+  }
+
+  // countries.forEach(country => {
+  //   console.log(country.properties?.name);
+  //   console.log(getArea(country));
+  //   console.log(country.properties?.center);
+  //   console.log(projection(country.properties?.center));
+  // });
 
   $: {
     const inCurrentYear = empireLookup.get(year)?.in;
@@ -117,6 +155,10 @@
     countriesToHighlightPartial = countries.filter(country =>
       countryCodePartialArray.includes(country.properties.code)
     );
+
+    countriesToRing = countriesToHighlight.filter(country => {
+      return getArea(country) < 1000;
+    });
   }
 
   const toDegrees = kms => kms / 111.319444;
@@ -288,12 +330,26 @@
     c.stroke();
 
     // Highlight a country
-    countriesToHighlight.forEach(country => {
-      c.beginPath();
-      c.fillStyle = 'hsl(220, 100%, 27%)';
+    countriesToHighlight.forEach((country: any) => {
+      context.beginPath();
+      c.fillStyle = HIGHLIGHT_COLOR;
       path(country);
       c.fill();
     });
+
+    context.globalAlpha = RING_OPACITY;
+    // Draw a ring around smaller islands
+    countriesToRing.forEach((country: any) => {
+      c.beginPath();
+      const circle = d3.geoCircle().center(country.properties?.center).radius(0.5);
+      context.beginPath();
+      c.lineWidth = 1.1;
+      context.fillStyle = HIGHLIGHT_COLOR;
+      path(circle());
+      context.fill();
+    });
+
+    context.globalAlpha = 1.0;
 
     // Draw country outlines
     // c.beginPath();

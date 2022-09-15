@@ -8,7 +8,7 @@ import * as d3Drag from 'd3-drag';
 import * as d3Transition from 'd3-transition';
 import * as d3Inerpolate from 'd3-interpolate';
 import * as D3request from 'd3-request';
-import * as D3Polygon from 'd3-polygon';
+// import * as D3Polygon from 'd3-polygon';
 
 export default {
   ...d3Selection,
@@ -21,5 +21,5 @@ export default {
   ...d3Transition,
   ...d3Inerpolate,
   ...D3request,
-  ...D3Polygon
+  // ...D3Polygon
 };
