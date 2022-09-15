@@ -6,6 +6,7 @@
   import { onMount } from 'svelte';
   import rangeInclusive from 'range-inclusive';
   import jankdefer from 'jankdefer';
+  import geoJsonArea from '@mapbox/geojson-area';
 
   // Internal imports
   import worldJson from './world.json';
@@ -13,6 +14,7 @@
   import countryCodes from './countryCodes.json';
   import empireData from './empireData.json';
   import worldComplex from './world-stripped.json';
+  import antarcticaJson from './antarctica.json';
 
   // Format data to determine if in empire or not
   const earliestYear = 1169;
@@ -28,8 +30,6 @@
     empireLookup.set(0, { in: empireData.filter(country => country['Country Code'] === 'GB') });
     empireLookup.set(4000, { in: empireData });
   });
-
-  console.log(empireLookup.get(0));
 
   export let background = 'hsl(0, 0%, 98%)';
   export let zoom = 100;
@@ -76,26 +76,32 @@
   const LAND_STROKE_COLOUR = '#94a1a4';
   const GLOBE_OUTLINE_COLOR = '#69788C';
 
+  // Map Features (Keeping because of missing Antarctica)
+  const LAND = topojson.feature(worldJson, worldJson.objects.countries);
+  const COUNTRIES = topojson.feature(worldJson, worldJson.objects.countries).features.map(f => {
+    f.properties.name = countriesJson[f.id?.toString()] || '';
+    f.properties.center = d3.geoCentroid(f);
+    f.properties.colour = '#377f8c';
+    f.properties.code = countryCodes.find(country => country.Numeric.toString() === f.id?.toString())?.Alpha2;
+    return f;
+  });
+  // const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
+  const antarctica = findCountryByCode('AQ', COUNTRIES);
+
   // More complex world
   const land = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
-  const countries = topojson.feature(worldComplex, worldComplex.objects['custom.geo']).features.map(feature => {
-    feature.properties.name = feature.properties.name_en || '';
-    feature.properties.center = d3.geoCentroid(feature);
-    feature.properties.code = feature.properties.iso_a2;
-    return feature;
-  });
-  const borders = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
 
-  // Map Features
-  // const LAND = topojson.feature(worldJson, worldJson.objects.countries);
-  // const COUNTRIES = topojson.feature(worldJson, worldJson.objects.countries).features.map(f => {
-  //   f.properties.name = countriesJson[f.id?.toString()] || '';
-  //   f.properties.center = d3.geoCentroid(f);
-  //   f.properties.colour = '#377f8c';
-  //   f.properties.code = countryCodes.find(country => country.Numeric.toString() === f.id?.toString())?.Alpha2;
-  //   return f;
-  // });
-  // const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
+  const countriesSansAntarctica = topojson
+    .feature(worldComplex, worldComplex.objects['custom.geo'])
+    .features.map(feature => {
+      feature.properties.name = feature.properties.name_en || '';
+      feature.properties.center = d3.geoCentroid(feature);
+      feature.properties.code = feature.properties.iso_a2;
+      return feature;
+    });
+  const countries: any = [...countriesSansAntarctica, antarctica];
+  console.log(countries)
+  const borders = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
 
   $: {
     const inCurrentYear = empireLookup.get(year)?.in;
@@ -121,9 +127,13 @@
     })[0];
   };
 
+  function findCountryByCode(countryCode, countries) {
+    return countries.find(c => c.properties?.code?.toLowerCase() === countryCode.toLocaleLowerCase());
+  }
+
   function getCenter(countryCode: string, countries): number[] {
     if (typeof countryCode === 'undefined') return ORIGIN;
-    const foundCountry = countries.find(c => c.properties?.code?.toLowerCase() === countryCode.toLocaleLowerCase());
+    const foundCountry = findCountryByCode(countryCode, countries);
     if (!foundCountry) return ORIGIN;
     return foundCountry.properties.center;
   }
