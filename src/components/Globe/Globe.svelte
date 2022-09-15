@@ -23,6 +23,10 @@
   empireYears.forEach((year: number) => {
     const countriesIn = empireData.filter(country => year >= country['Start date'] && year <= country['End date']);
     empireLookup.set(year, { in: countriesIn });
+
+    // Special cases
+    empireLookup.set(0, { in: empireData.filter(country => country['Country Code'] === 'GB') });
+    empireLookup.set(4000, { in: empireData });
   });
 
   console.log(empireLookup.get(0));
