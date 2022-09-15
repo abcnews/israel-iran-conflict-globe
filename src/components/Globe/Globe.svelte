@@ -7,6 +7,7 @@
   import rangeInclusive from 'range-inclusive';
   import jankdefer from 'jankdefer';
   import geoJsonArea from '@mapbox/geojson-area';
+  import produce from 'immer';
 
   // Internal imports
   import worldJson from './world.json';
@@ -36,8 +37,9 @@
   export let zoom = 100;
   export let duration = 1250;
   export let focus = 'AU';
-  export let year = 1901;
+  export let year = 0;
 
+  let globalTime: number;
   let innerWidth;
   let innerHeight;
   let isInitialised = false;
@@ -49,11 +51,19 @@
   let canvasElement;
   let path;
   let isDrawing = false;
-  let countriesToHighlight = [];
+  let countriesToHighlight: any = [];
+  let totalCountriesToHighlight: any = [];
   let countriesToHighlightPartial = [];
   let countriesToRing = [];
+  let countriesToAnimateIn: any = [];
+  // let countriesRemainingSolid: any = [];
+  let countriesToAnimateOut: any = [];
+  let prevHighlightedCountries: any = [];
+  let prevHighlightedCountryCodes: any = [];
 
   const globe = { type: 'Sphere' };
+
+  const fadeEase = d3.easeExpIn;
 
   let margin = getMargin(width, height);
   const projection = d3
@@ -78,7 +88,7 @@
   const LAND_STROKE_COLOUR = '#94a1a4';
   const GLOBE_OUTLINE_COLOR = '#CCCCCC';
   const HIGHLIGHT_COLOR = 'hsl(220, 100%, 27%)';
-  const RING_OPACITY = 0.5;
+  const RING_OPACITY = 0.9;
 
   // Map Features (Keeping because of missing Antarctica)
   // TODO: Integrate into more complex map
@@ -98,10 +108,7 @@
     feature.properties.code = 'GI';
     return feature;
   });
-  console.log(COUNTRIES);
-  console.log(gibraltar);
 
-  console.log(britishIndianOceanTerritoryJson);
   const [britishIndianOceanTerritory] = topojson
     .feature(britishIndianOceanTerritoryJson, britishIndianOceanTerritoryJson.objects.britishIndianOcean)
     .features.map(feature => {
@@ -110,15 +117,11 @@
       feature.properties.code = 'IO';
       return feature;
     });
-  console.log(COUNTRIES);
-  console.log(britishIndianOceanTerritory);
-
-  // const britishIndianOceanTerritories = findCountryByCode('IO', COUNTRIES);
 
   // More complex world
-  const land = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
+  const landSansOthers = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
 
-  const countriesSansAntarctica = topojson
+  const countriesSansOthers = topojson
     .feature(worldComplex, worldComplex.objects['custom.geo'])
     .features.map(feature => {
       feature.properties.name = feature.properties.name_en || '';
@@ -126,8 +129,12 @@
       feature.properties.code = feature.properties.iso_a2;
       return feature;
     });
-  const countries: any = [...countriesSansAntarctica, antarctica, gibraltar, britishIndianOceanTerritory];
+  const countries: any = [...countriesSansOthers, antarctica, gibraltar, britishIndianOceanTerritory];
   const borders = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
+
+  const land = produce(landSansOthers, draft => {
+    draft.features.push(antarctica, gibraltar, britishIndianOceanTerritory);
+  });
 
   // Calculate area of polygon km^2
   function getArea(country) {
@@ -141,17 +148,30 @@
   //   console.log(projection(country.properties?.center));
   // });
 
-  $: {
+  function doHighlightCalculations() {
     const inCurrentYear = empireLookup.get(year)?.in;
     const inCurrentYearFull = inCurrentYear?.filter(country => !country.Partial) || [];
     const inCurrentYearPartial = inCurrentYear?.filter(country => country.Partial) || [];
 
+    console.log(inCurrentYearPartial);
+
     // Get full highlight countries
     const countryCodeArray = inCurrentYearFull.map(country => country['Country Code']);
-    countriesToHighlight = countries.filter(country => countryCodeArray.includes(country.properties.code));
+    countriesToHighlight = countries.filter(country => countryCodeArray.includes(country.properties?.code));
+
+    countriesToAnimateIn = countriesToHighlight
+      .filter((country: any) => !prevHighlightedCountryCodes.includes(country.properties?.code))
+      .map(country => country.properties?.code);
+
+    countriesToAnimateOut = prevHighlightedCountries.filter(
+      country => !countriesToHighlight.map(country => country.properties?.code).includes(country.properties?.code)
+    );
+
+    prevHighlightedCountryCodes = countriesToHighlight.map(country => country.properties?.code);
+    prevHighlightedCountries = countriesToHighlight;
 
     // Get partial highlight countries
-    const countryCodePartialArray = inCurrentYearPartial.map(country => country['Country Code']);
+    const countryCodePartialArray: any = inCurrentYearPartial.map(country => country['Country Code']);
     countriesToHighlightPartial = countries.filter(country =>
       countryCodePartialArray.includes(country.properties.code)
     );
@@ -159,6 +179,13 @@
     countriesToRing = countriesToHighlight.filter(country => {
       return getArea(country) < 1000;
     });
+  }
+
+  $: {
+    year;
+    focus;
+    zoom;
+    doHighlightCalculations();
   }
 
   const toDegrees = kms => kms / 111.319444;
@@ -224,9 +251,12 @@
         return t => {
           projection.scale(lerpScale(t));
           projection.rotate(lerpRotation(t));
+          globalTime = t;
           draw();
 
-          t === 1 && onComplete();
+          if (t === 1) {
+            onComplete && onComplete();
+          }
         };
       });
   }
@@ -331,32 +361,20 @@
 
     // Highlight a country
     countriesToHighlight.forEach((country: any) => {
-      context.beginPath();
-      c.fillStyle = HIGHLIGHT_COLOR;
+      c.beginPath();
+      c.fillStyle = countriesToAnimateIn.includes(country.properties?.code)
+        ? `hsla(220, 100%, 27%, ${fadeEase(globalTime)})`
+        : HIGHLIGHT_COLOR;
       path(country);
       c.fill();
     });
 
-    context.globalAlpha = RING_OPACITY;
-    // Draw a ring around smaller islands
-    countriesToRing.forEach((country: any) => {
+    countriesToAnimateOut.forEach((country: any) => {
       c.beginPath();
-      const circle = d3.geoCircle().center(country.properties?.center).radius(0.5);
-      context.beginPath();
-      c.lineWidth = 1.1;
-      context.fillStyle = HIGHLIGHT_COLOR;
-      path(circle());
-      context.fill();
+      c.fillStyle = `hsl(220, 100%, 27%, ${1.0 - fadeEase(globalTime)})`;
+      path(country);
+      c.fill();
     });
-
-    context.globalAlpha = 1.0;
-
-    // Draw country outlines
-    // c.beginPath();
-    // c.strokeStyle = LAND_STROKE_COLOUR;
-    // c.lineWidth = 1.4;
-    // path(BORDERS);
-    // c.stroke();
 
     // Partial highlights
     countriesToHighlightPartial.forEach(country => {
@@ -368,6 +386,31 @@
       c.fill();
       c.stroke();
     });
+
+    // TODO: partial animate out if time
+
+    context.globalAlpha = RING_OPACITY;
+    // Draw a ring around smaller islands
+    countriesToRing.forEach((country: any) => {
+      c.beginPath();
+      const circle = d3.geoCircle().center(country.properties?.center).radius(0.5);
+      context.beginPath();
+      c.lineWidth = 1.1;
+      c.fillStyle = countriesToAnimateIn.includes(country.properties?.code)
+        ? `hsla(220, 100%, 27%, ${fadeEase(globalTime)})`
+        : HIGHLIGHT_COLOR;
+      path(circle());
+      context.fill();
+    });
+
+    c.globalAlpha = 1.0;
+
+    // Draw country outlines
+    // c.beginPath();
+    // c.strokeStyle = LAND_STROKE_COLOUR;
+    // c.lineWidth = 1.4;
+    // path(BORDERS);
+    // c.stroke();
 
     // Draw a thicker outline around the globe to hide any circle edges
     c.beginPath();
@@ -422,7 +465,10 @@
   }
 
   $: center = getCenter(focus, countries);
-  $: isInitialised && setScaleAndPosition(zoom, center, duration);
+  $: canvas &&
+    setScaleAndPosition(zoom, center, isInitialised ? duration : 0, () => {
+      isInitialised = true;
+    });
   $: onResize(innerWidth, innerHeight);
 
   onMount(() => {
@@ -443,7 +489,8 @@
       path = d3.geoPath().projection(projection).context(context);
 
       // Set initial position instantly
-      setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
+      // setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
+      // isInitialised = true
     }
 
     jankdefer(init, {
