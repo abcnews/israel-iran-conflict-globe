@@ -5,23 +5,27 @@
   import canvasDpiScaler from 'canvas-dpi-scaler';
   import { onMount } from 'svelte';
   import rangeInclusive from 'range-inclusive';
+  import jankdefer from 'jankdefer';
 
   // Internal imports
   import worldJson from './world.json';
   import countriesJson from './countries.json';
   import countryCodes from './countryCodes.json';
   import empireData from './empireData.json';
+  import worldComplex from './world-stripped.json';
 
   // Format data to determine if in empire or not
   const earliestYear = 1169;
   const latestYear = 2022;
   const empireYears = rangeInclusive(earliestYear, latestYear);
-  const empireMap = new Map();
+  const empireLookup = new Map();
 
   empireYears.forEach((year: number) => {
     const countriesIn = empireData.filter(country => year >= country['Start date'] && year <= country['End date']);
-    empireMap.set(year, { in: countriesIn });
+    empireLookup.set(year, { in: countriesIn });
   });
+
+  console.log(empireLookup.get(0));
 
   export let background = 'hsl(0, 0%, 98%)';
   export let zoom = 100;
@@ -59,37 +63,48 @@
       globe
     );
 
-  let INITIAL_SCALE = projection.scale();
-  let scale = INITIAL_SCALE;
+  let initialScale = projection.scale();
+  let scale = initialScale;
 
   const ORIGIN = [-0.118092, 51.509865]; // London
   const OCEAN_COLOUR = 'hsl(216, 100%, 97%)';
   const LAND_COLOUR = '#FFFFFF';
   const LAND_STROKE_COLOUR = '#94a1a4';
+  const GLOBE_OUTLINE_COLOR = '#69788C';
+
+  // More complex world
+  const land = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
+  const countries = topojson.feature(worldComplex, worldComplex.objects['custom.geo']).features.map(feature => {
+    feature.properties.name = feature.properties.name_en || '';
+    feature.properties.center = d3.geoCentroid(feature);
+    feature.properties.code = feature.properties.iso_a2;
+    return feature;
+  });
+  const borders = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
 
   // Map Features
-  const LAND = topojson.feature(worldJson, worldJson.objects.countries);
-  const COUNTRIES = topojson.feature(worldJson, worldJson.objects.countries).features.map(f => {
-    f.properties.name = countriesJson[f.id?.toString()] || '';
-    f.properties.center = d3.geoCentroid(f);
-    f.properties.colour = '#377f8c';
-    f.properties.code = countryCodes.find(country => country.Numeric.toString() === f.id?.toString())?.Alpha2;
-    return f;
-  });
-  const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
+  // const LAND = topojson.feature(worldJson, worldJson.objects.countries);
+  // const COUNTRIES = topojson.feature(worldJson, worldJson.objects.countries).features.map(f => {
+  //   f.properties.name = countriesJson[f.id?.toString()] || '';
+  //   f.properties.center = d3.geoCentroid(f);
+  //   f.properties.colour = '#377f8c';
+  //   f.properties.code = countryCodes.find(country => country.Numeric.toString() === f.id?.toString())?.Alpha2;
+  //   return f;
+  // });
+  // const BORDERS = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
 
   $: {
-    const inCurrentYear = empireMap.get(year).in;
-    const inCurrentYearFull = inCurrentYear.filter(country => !country.Partial);
-    const inCurrentYearPartial = inCurrentYear.filter(country => country.Partial);
+    const inCurrentYear = empireLookup.get(year)?.in;
+    const inCurrentYearFull = inCurrentYear?.filter(country => !country.Partial) || [];
+    const inCurrentYearPartial = inCurrentYear?.filter(country => country.Partial) || [];
 
     // Get full highlight countries
     const countryCodeArray = inCurrentYearFull.map(country => country['Country Code']);
-    countriesToHighlight = COUNTRIES.filter(country => countryCodeArray.includes(country.properties.code));
+    countriesToHighlight = countries.filter(country => countryCodeArray.includes(country.properties.code));
 
     // Get partial highlight countries
     const countryCodePartialArray = inCurrentYearPartial.map(country => country['Country Code']);
-    countriesToHighlightPartial = COUNTRIES.filter(country =>
+    countriesToHighlightPartial = countries.filter(country =>
       countryCodePartialArray.includes(country.properties.code)
     );
   }
@@ -97,7 +112,7 @@
   const toDegrees = kms => kms / 111.319444;
   const wait = m => new Promise((resolve, reject) => setTimeout(resolve, m));
   const findCountry = name => {
-    return COUNTRIES.filter(c => {
+    return countries.filter(c => {
       return c.properties.name.toLowerCase() === name.toLowerCase();
     })[0];
   };
@@ -138,7 +153,7 @@
     if (typeof duration === 'undefined') duration = 1000;
 
     scale = scaleLocal;
-    scaleLocal = (INITIAL_SCALE * scale) / 100;
+    scaleLocal = (initialScale * scale) / 100;
 
     if (typeof position === 'string') position = findCountry(position).properties.center;
 
@@ -171,7 +186,7 @@
     if (typeof duration === 'undefined') duration = 1000;
 
     scale = scale;
-    scale = (INITIAL_SCALE * scale) / 100;
+    scale = (initialScale * scale) / 100;
 
     d3.select({})
       .transition()
@@ -241,7 +256,6 @@
 
     const c = context.canvas ? context : canvas.node().getContext('2d');
 
-    // c.fillStyle = c.fillRect(0, 0, width, height);
     c.clearRect(0, 0, width, height);
 
     // Draw the oceans
@@ -250,12 +264,12 @@
     path(globe);
     c.fill();
 
-    // Draw the land
+    // Draw the land and borders
     c.beginPath();
     c.strokeStyle = LAND_STROKE_COLOUR;
-    c.fillStyle = LAND_COLOUR;
     c.lineWidth = 1.1;
-    path(LAND);
+    c.fillStyle = LAND_COLOUR;
+    path(land);
     c.fill();
     c.stroke();
 
@@ -268,11 +282,11 @@
     });
 
     // Draw country outlines
-    c.beginPath();
-    c.strokeStyle = LAND_STROKE_COLOUR;
-    c.lineWidth = 1.4;
-    path(BORDERS);
-    c.stroke();
+    // c.beginPath();
+    // c.strokeStyle = LAND_STROKE_COLOUR;
+    // c.lineWidth = 1.4;
+    // path(BORDERS);
+    // c.stroke();
 
     // Partial highlights
     countriesToHighlightPartial.forEach(country => {
@@ -294,8 +308,8 @@
 
     // Draw the nice thin actual outline of the globe
     c.beginPath();
-    c.strokeStyle = '#b5cdd5';
-    c.lineWidth = 2;
+    c.strokeStyle = GLOBE_OUTLINE_COLOR;
+    c.lineWidth = 1.7;
     projection.scale(projection.scale() - 5);
     path(globe);
     c.stroke();
@@ -327,8 +341,8 @@
       ],
       globe
     );
-    // On different sized screens we want to reset this "constant"
-    INITIAL_SCALE = projection.scale();
+
+    initialScale = projection.scale();
 
     // Keep scale at the percentage it was before the resize
     projection.scale((projection.scale() * scale) / 100);
@@ -337,28 +351,37 @@
     draw();
   }
 
-  $: center = getCenter(focus, COUNTRIES);
+  $: center = getCenter(focus, countries);
   $: isInitialised && setScaleAndPosition(zoom, center, duration);
   $: onResize(innerWidth, innerHeight);
 
   onMount(() => {
-    canvas = d3.select(rootEl).append('canvas').style('display', 'block').attr('width', width).attr('height', height);
-    context = canvas.node().getContext('2d');
-    canvasElement = canvas.node();
+    function init() {
+      canvas = d3.select(rootEl).append('canvas').style('display', 'block').attr('width', width).attr('height', height);
+      context = canvas.node().getContext('2d');
+      canvasElement = canvas.node();
 
-    // Scale Canvas if on HighDPI/Retina screens
-    canvasDpiScaler(canvasElement, context);
+      // Scale Canvas if on HighDPI/Retina screens
+      canvasDpiScaler(canvasElement, context);
 
-    // Do some preload magic to stop font flicker
-    context.beginPath();
-    context.fillStyle = 'rgba(0, 0, 0, 0.0)';
-    context.font = '700 18px ABCSans';
-    context.fillText('Preloading ABC Sans...', 100, 100);
+      // Do some preload magic to stop font flicker
+      context.beginPath();
+      context.fillStyle = 'rgba(0, 0, 0, 0.0)';
+      context.font = '700 18px ABCSans';
+      context.fillText('Preloading ABC Sans...', 100, 100);
 
-    path = d3.geoPath().projection(projection).context(context);
+      path = d3.geoPath().projection(projection).context(context);
 
-    // Set initial position instantly
-    setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
+      // Set initial position instantly
+      setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
+    }
+
+    jankdefer(init, {
+      framerateTarget: 50,
+      timeout: 3000,
+      threshold: 5,
+      debug: false
+    });
   });
 </script>
 
