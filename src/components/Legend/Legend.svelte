@@ -37,7 +37,7 @@
     font-family: ABCSans, sans-serif;
     display: flex;
     align-items: center;
-    transition: opacity 0.75s, box-shadow 0.75s;
+    transition: opacity 0.75s;
   }
 
   .legend.isVisible {
@@ -45,8 +45,28 @@
     transition-delay: 0.75s;
   }
 
-  .legend.isObscuringGlobe {
-    box-shadow: inset -1px -1px 0px 0px #94a1a4;
+  .legend::before {
+    content: '';
+    opacity: 0;
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    border: 1px solid #69788c;
+    width: calc(100% + 2px);
+    height: calc(100% + 1px);
+    transition: opacity 0.75s 0.25s;
+  }
+
+  @media (min-width: 331px) {
+    .legend::before {
+      left: 0;
+      width: 100%;
+    }
+  }
+
+  .legend.isObscuringGlobe::before {
+    opacity: 1;
+    transition-delay: 0.5s;
   }
 
   .legend > * {
