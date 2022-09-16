@@ -10,7 +10,7 @@
   $: $currentYear = year;
 </script>
 
-<legend class="legend" class:hasYear={$currentYear !== null} class:isVisible class:isObscuringGlobe>
+<div class="legend" class:hasYear={$currentYear !== null} class:isVisible class:isObscuringGlobe>
   <div class="year">{$currentYear || $previousYear}</div>
   <div class="series british">
     <div class="indicator" />
@@ -20,7 +20,7 @@
     <div class="indicator" />
     <div class="text">Partial rule</div>
   </div>
-</legend>
+</div>
 
 <style>
   .legend {
@@ -29,7 +29,6 @@
     position: absolute;
     top: 0;
     left: 50%;
-    padding: 0;
     width: 100%;
     max-width: 330px;
     overflow: hidden;
