@@ -26,18 +26,35 @@
 
   empireYears.forEach((year: number) => {
     const countriesIn = empireData.filter(country => year >= country['Start date'] && year <= country['End date']);
-    empireLookup.set(year, { in: countriesIn });
 
     // Special cases, only UK, and ALL ever
     empireLookup.set(0, { in: empireData.filter(country => country['Country Code'] === 'GB') });
 
     // Alter Papua New Guinea for ending
+    // NOTE: after 1914 partial false ----
     const specialCaseEmpireData = produce(empireData, draft => {
       const result = draft.find(country => country['Country Code'] === 'PG');
       if (result) result.Partial = false;
     });
     empireLookup.set(4000, { in: specialCaseEmpireData });
+
+    empireLookup.set(year, { in: countriesIn });
   });
+
+  function getEmpireForYear(year: number) {
+    const lookupResult = empireLookup.get(year)?.in;
+    // Another special case for PG after 1914
+    if (year > 1914) {
+      // PG not partial
+      const correction = lookupResult.map(country =>
+        country['Country Code'] === 'PG' ? { ...country, Partial: false } : country
+      );
+
+      return correction;
+    }
+
+    return lookupResult;
+  }
 
   export let background = 'hsl(0, 0%, 98%)';
   export let zoom = 100;
@@ -61,7 +78,6 @@
   let path;
   let isDrawing = false;
   let countriesToHighlight: any = [];
-  let totalCountriesToHighlight: any = [];
   let countriesToHighlightPartial = [];
   let prevPartialHighlightedCountryCodes: any = [];
   let prevCountriesToRing = [];
@@ -162,7 +178,7 @@
   // Here we are separating different countries and giving them different animations
   // depending on if they're partials or fading in or fading out.
   function doHighlightCalculations() {
-    const inCurrentYear = empireLookup.get(year)?.in;
+    const inCurrentYear = getEmpireForYear(year); //empireLookup.get(year)?.in;
     const inCurrentYearFull = inCurrentYear?.filter(country => !country.Partial) || [];
     const inCurrentYearPartial = inCurrentYear?.filter(country => country.Partial) || [];
 
@@ -295,78 +311,6 @@
 
     d3.select({}).transition().duration(duration).tween('scaleAndRotation', tweenFunction);
   }
-
-  // /**
-  //  * Animate a change in scale for the globe
-  //  * @param {number} scale Percentage of initial scale
-  //  * @param {number} duration A time in milliseconds
-  //  * @param {bool} bounce Should the camera zoom out further than needed in the zoom tween arc
-  //  * @param {function} onComplete A function to run when the tween has finished
-  //  */
-  // function setScale(scale, duration, bounce, onComplete) {
-  //   if (typeof duration === 'undefined') duration = 1000;
-
-  //   scale = scale;
-  //   scale = (initialScale * scale) / 100;
-
-  //   d3.select({})
-  //     .transition()
-  //     .duration(duration)
-  //     .tween('zoom', () => {
-  //       const scale0 = projection.scale();
-  //       const lerp = interpolateScale(scale0, scale, bounce);
-  //       return t => {
-  //         projection.scale(lerp(t));
-  //         draw();
-
-  //         if (t === 1) {
-  //           onComplete && onComplete();
-  //         }
-  //       };
-  //     });
-  // }
-
-  // /**
-  //  * Animate the focused location of the globe
-  //  * @param {array|string} position [lat, lng] or name of country
-  //  * @param {number} duration A time in milliseconds
-  //  * @param {function} onComplete A function to run when the tween has finished
-  //  */
-  // function setPosition(position, duration, onComplete) {
-  //   if (typeof duration === 'undefined') duration = 1000;
-  //   if (typeof position === 'string') position = findCountry(position).properties.center;
-
-  //   d3.select({})
-  //     .transition()
-  //     .duration(duration)
-  //     .tween('rotation', () => {
-  //       const rotation0 = projection.rotate();
-  //       const lerp = d3.interpolate(rotation0, [-position[0], -position[1]]);
-  //       return t => {
-  //         projection.rotate(lerp(t));
-  //         draw();
-
-  //         if (t === 1) {
-  //           onComplete && onComplete();
-  //         }
-  //       };
-  //     });
-  // }
-
-  // /**
-  //  * Animate a change in location of the globe
-  //  * @param {array} vector [x, y] in kilometres to be added to the current [lat, lng] position
-  //  * @param {number} duration A time in milliseconds
-  //  * @param {function} onComplete A function to run when the tween has finished
-  //  */
-  // function rotateBy(vector, duration, onComplete) {
-  //   if (typeof duration === 'undefined') duration = 1000;
-
-  //   const rotation0 = projection.rotate();
-  //   const newPosition = [-rotation0[0] + toDegrees(vector[0]), -rotation0[1] + toDegrees(vector[1])];
-
-  //   setPosition(newPosition, duration, onComplete);
-  // }
 
   /**
    * Draw a frame to the canvas
@@ -538,12 +482,6 @@
     draw();
     requestAnimationFrame(startSpin);
   };
-
-  // $: {
-  //   if (shouldRotate) {
-  //     rotationSpeed = 0;
-  //   }
-  // }
 
   onMount(() => {
     function init() {
