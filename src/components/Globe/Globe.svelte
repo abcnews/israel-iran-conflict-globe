@@ -515,7 +515,7 @@
 
   const startSpin = () => {
     if (isTweening || !shouldRotate) return;
-    rotationSpeed < rotationTopSpeed ? rotationSpeed += 0.001 : null;
+    rotationSpeed < rotationTopSpeed ? (rotationSpeed += 0.001) : null;
     earthRotation = projection.rotate();
     earthRotation[0] = earthRotation[0] + rotationSpeed;
     projection.rotate(earthRotation);
@@ -523,10 +523,7 @@
     requestAnimationFrame(startSpin);
   };
 
-  $: {
-    // Do we need this?
-    !shouldRotate ? rotationSpeed = 0 : null;
-  }
+  $: !shouldRotate ? (rotationSpeed = 0) : null;
 
   onMount(() => {
     function init() {

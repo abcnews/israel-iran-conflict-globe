@@ -23,7 +23,7 @@
     countryCodeFocus = marker.focus || 'GB';
     year = typeof marker.year === 'undefined' ? 0 : marker.year;
     duration = marker.duration || DEFAULT_DURATION;
-    shouldRotate = marker.rotate || shouldRotate;
+    shouldRotate = marker.rotate ? true : false;
   };
 
   const progressChangeHandler = progress => {};
