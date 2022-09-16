@@ -54,7 +54,7 @@
   .graphic {
     height: 100%;
     width: 100%;
-    background-color: 'hsl(0, 0%, 98%)';
+    background-color: hsl(0, 0%, 98%);
     display: flex;
   }
 
