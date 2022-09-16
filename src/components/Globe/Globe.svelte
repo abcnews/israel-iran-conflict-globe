@@ -3,7 +3,7 @@
   import * as topojson from 'topojson-client';
   import d3 from './d3';
   import canvasDpiScaler from 'canvas-dpi-scaler';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import rangeInclusive from 'range-inclusive';
   import jankdefer from 'jankdefer';
   import geoJsonArea from '@mapbox/geojson-area';
@@ -38,6 +38,7 @@
   export let duration = 1250;
   export let focus = 'AU';
   export let year = 0;
+  export let shouldRotate = false;
 
   let globalTime: number;
   let innerWidth;
@@ -65,6 +66,10 @@
   let prevHighlightedCountries: any = [];
   let prevHighlightedCountryCodes: any = [];
   let prevPartialHighlightedCountries: any = [];
+  let earthRotation: number = 0;
+  let rotationSpeed: number = 0.0;
+  let rotationTopSpeed: number = 0.2;
+  let isTweening = false;
 
   const globe = { type: 'Sphere' };
 
@@ -146,6 +151,8 @@
     return geoJsonArea.geometry(country.geometry) / 1000000;
   }
 
+  // Here we are separating different countries and giving them different animations
+  // depending on if they're partials or fading in or fading out.
   function doHighlightCalculations() {
     const inCurrentYear = empireLookup.get(year)?.in;
     const inCurrentYearFull = inCurrentYear?.filter(country => !country.Partial) || [];
@@ -253,25 +260,30 @@
 
     if (typeof position === 'string') position = findCountry(position).properties.center;
 
-    d3.select({})
-      .transition()
-      .duration(duration)
-      .tween('scaleAndRotation', () => {
-        const scale0 = projection.scale();
-        const lerpScale = d3.interpolate(scale0, scaleLocal);
-        const rotation0 = projection.rotate();
-        const lerpRotation = d3.interpolate(rotation0, [-position[0], -position[1]]);
-        return t => {
-          projection.scale(lerpScale(t));
-          projection.rotate(lerpRotation(t));
-          globalTime = t;
-          draw();
+    const tweenFunction = () => {
+      // Stop auto rotate & reset initial auto rotate speed
+      isTweening = true;
+      rotationSpeed = 0;
 
-          if (t === 1) {
-            onComplete && onComplete();
-          }
-        };
-      });
+      const scale0 = projection.scale();
+      const lerpScale = d3.interpolate(scale0, scaleLocal);
+      const rotation0 = projection.rotate();
+      const lerpRotation = d3.interpolate(rotation0, [-position[0], -position[1]]);
+      return t => {
+        projection.scale(lerpScale(t));
+        projection.rotate(lerpRotation(t));
+        globalTime = t;
+        draw();
+
+        if (t === 1) {
+          isTweening = false;
+          canvasElement && shouldRotate && startSpin();
+          onComplete && onComplete();
+        }
+      };
+    };
+
+    d3.select({}).transition().duration(duration).tween('scaleAndRotation', tweenFunction);
   }
 
   /**
@@ -501,6 +513,21 @@
     });
   $: onResize(innerWidth, innerHeight);
 
+  const startSpin = () => {
+    if (isTweening || !shouldRotate) return;
+    rotationSpeed < rotationTopSpeed ? rotationSpeed += 0.001 : null;
+    earthRotation = projection.rotate();
+    earthRotation[0] = earthRotation[0] + rotationSpeed;
+    projection.rotate(earthRotation);
+    draw();
+    requestAnimationFrame(startSpin);
+  };
+
+  $: {
+    // Do we need this?
+    !shouldRotate ? rotationSpeed = 0 : null;
+  }
+
   onMount(() => {
     function init() {
       canvas = d3.select(rootEl).append('canvas').style('display', 'block').attr('width', width).attr('height', height);
@@ -517,10 +544,6 @@
       context.fillText('Preloading ABC Sans...', 100, 100);
 
       path = d3.geoPath().projection(projection).context(context);
-
-      // Set initial position instantly
-      // setScaleAndPosition(100, ORIGIN, 0, () => (isInitialised = true));
-      // isInitialised = true
     }
 
     jankdefer(init, {

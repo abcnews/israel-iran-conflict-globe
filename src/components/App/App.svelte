@@ -13,15 +13,17 @@
 
   let globeScale = 100;
   let countryCodeFocus = 'GB';
-  let year = 1901;
+  let year = 0;
   let duration = 1500;
+  let shouldRotate = false;
 
   const markerChangeHandler = marker => {
     console.log(marker);
     globeScale = marker.zoom || globeScale;
     countryCodeFocus = marker.focus || 'GB';
-    year = marker.year || year;
+    year = typeof marker.year === 'undefined' ? 0 : marker.year;
     duration = marker.duration || DEFAULT_DURATION;
+    shouldRotate = marker.rotate || shouldRotate;
   };
 
   const progressChangeHandler = progress => {};
@@ -34,7 +36,7 @@
   customPanel={CustomPanel}
 >
   <div class="graphic">
-    <Globe zoom={globeScale} focus={countryCodeFocus} {year} {duration} />
+    <Globe zoom={globeScale} focus={countryCodeFocus} {year} {duration} {shouldRotate} />
   </div>
 </Scrollyteller>
 
@@ -47,7 +49,7 @@
   }
 
   :global(.u-layout > div.interactive-globe) {
-    // Fix for Odyssey 
+    // Fix for Odyssey
     margin-left: calc(-50vw + 0px + 50%) !important;
     width: calc(100vw - 0px);
   }
