@@ -74,11 +74,8 @@
   let prevHighlightedCountries: any = [];
   let prevHighlightedCountryCodes: any = [];
   let prevPartialHighlightedCountries: any = [];
-  let earthRotation;
   let rotationWhenStarted: number = 0;
-  let rotationSpeed: number = 0.0;
-  let rotationTopSpeed: number = 0.01;
-  let rotationAccelerationFactor = 0.001;
+
   let isTweening = false;
 
   const globe = { type: 'Sphere' };
@@ -108,7 +105,8 @@
   const LAND_STROKE_COLOUR = '#94a1a4';
   const GLOBE_OUTLINE_COLOR = '#CCCCCC';
   const HIGHLIGHT_COLOR = 'hsl(220, 100%, 27%)';
-  const RING_OPACITY = 0.9;
+  const ROTATION_TOP_SPEED: number = 0.025;
+  const SPIN_UP_TIME = 3000;
 
   // Map Features (Keeping because of missing Antarctica)
   // TODO: Integrate into more complex map
@@ -272,7 +270,6 @@
 
     const tweenFunction = () => {
       // Reset rotation
-      rotationSpeed = 0;
       isTweening = true;
       const scale0 = projection.scale();
       const lerpScale = d3.interpolate(scale0, scaleLocal);
@@ -527,9 +524,9 @@
   $: onResize(innerWidth, innerHeight);
 
   // Scales and Easing
-  const speedScale = d3.scaleLinear().domain([0, 1]).range([0, rotationTopSpeed]);
+  const speedScale = d3.scaleLinear().domain([0, 1]).range([0, ROTATION_TOP_SPEED]);
   speedScale.clamp(true);
-  const easeScale = d3.scaleLinear().domain([0, 1000]).range([0, 1]);
+  const easeScale = d3.scaleLinear().domain([0, SPIN_UP_TIME]).range([0, 1]);
   easeScale.clamp(true);
   const speedEase = d3.easeSinOut;
 
@@ -542,11 +539,11 @@
     requestAnimationFrame(startSpin);
   };
 
-  $: {
-    if (shouldRotate) {
-      rotationSpeed = 0;
-    }
-  }
+  // $: {
+  //   if (shouldRotate) {
+  //     rotationSpeed = 0;
+  //   }
+  // }
 
   onMount(() => {
     function init() {
