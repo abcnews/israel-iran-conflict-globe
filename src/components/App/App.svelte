@@ -42,7 +42,11 @@
 >
   <div class="graphic">
     <Globe zoom={globeScale} focus={countryCodeFocus} {year} {duration} {shouldRotate} />
-    <Legend {year} isVisible={isLegendVisible} isObscuringGlobe={isLegendObscuringGlobe} />
+    <Legend
+      year={year >= 1901 && year <= 2022 ? year : null}
+      isVisible={isLegendVisible}
+      isObscuringGlobe={isLegendObscuringGlobe}
+    />
   </div>
 </Scrollyteller>
 
