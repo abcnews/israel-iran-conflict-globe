@@ -46,6 +46,8 @@
   export let year = 0;
   export let shouldRotate = false;
 
+  let t0 = Date.now();
+
   let globalTime: number;
   let innerWidth;
   let innerHeight;
@@ -72,9 +74,11 @@
   let prevHighlightedCountries: any = [];
   let prevHighlightedCountryCodes: any = [];
   let prevPartialHighlightedCountries: any = [];
-  let earthRotation: number = 0;
+  let earthRotation;
+  let rotationWhenStarted: number = 0;
   let rotationSpeed: number = 0.0;
-  let rotationTopSpeed: number = 0.2;
+  let rotationTopSpeed: number = 0.01;
+  let rotationAccelerationFactor = 0.001;
   let isTweening = false;
 
   const globe = { type: 'Sphere' };
@@ -282,7 +286,11 @@
 
         if (t === 1) {
           isTweening = false;
-          canvasElement && shouldRotate && startSpin();
+          if (canvasElement && shouldRotate && isInitialised) {
+            t0 = Date.now();
+            rotationWhenStarted = projection.rotate();
+            startSpin();
+          }
           onComplete && onComplete();
         }
       };
@@ -291,77 +299,77 @@
     d3.select({}).transition().duration(duration).tween('scaleAndRotation', tweenFunction);
   }
 
-  /**
-   * Animate a change in scale for the globe
-   * @param {number} scale Percentage of initial scale
-   * @param {number} duration A time in milliseconds
-   * @param {bool} bounce Should the camera zoom out further than needed in the zoom tween arc
-   * @param {function} onComplete A function to run when the tween has finished
-   */
-  function setScale(scale, duration, bounce, onComplete) {
-    if (typeof duration === 'undefined') duration = 1000;
+  // /**
+  //  * Animate a change in scale for the globe
+  //  * @param {number} scale Percentage of initial scale
+  //  * @param {number} duration A time in milliseconds
+  //  * @param {bool} bounce Should the camera zoom out further than needed in the zoom tween arc
+  //  * @param {function} onComplete A function to run when the tween has finished
+  //  */
+  // function setScale(scale, duration, bounce, onComplete) {
+  //   if (typeof duration === 'undefined') duration = 1000;
 
-    scale = scale;
-    scale = (initialScale * scale) / 100;
+  //   scale = scale;
+  //   scale = (initialScale * scale) / 100;
 
-    d3.select({})
-      .transition()
-      .duration(duration)
-      .tween('zoom', () => {
-        const scale0 = projection.scale();
-        const lerp = interpolateScale(scale0, scale, bounce);
-        return t => {
-          projection.scale(lerp(t));
-          draw();
+  //   d3.select({})
+  //     .transition()
+  //     .duration(duration)
+  //     .tween('zoom', () => {
+  //       const scale0 = projection.scale();
+  //       const lerp = interpolateScale(scale0, scale, bounce);
+  //       return t => {
+  //         projection.scale(lerp(t));
+  //         draw();
 
-          if (t === 1) {
-            onComplete && onComplete();
-          }
-        };
-      });
-  }
+  //         if (t === 1) {
+  //           onComplete && onComplete();
+  //         }
+  //       };
+  //     });
+  // }
 
-  /**
-   * Animate the focused location of the globe
-   * @param {array|string} position [lat, lng] or name of country
-   * @param {number} duration A time in milliseconds
-   * @param {function} onComplete A function to run when the tween has finished
-   */
-  function setPosition(position, duration, onComplete) {
-    if (typeof duration === 'undefined') duration = 1000;
-    if (typeof position === 'string') position = findCountry(position).properties.center;
+  // /**
+  //  * Animate the focused location of the globe
+  //  * @param {array|string} position [lat, lng] or name of country
+  //  * @param {number} duration A time in milliseconds
+  //  * @param {function} onComplete A function to run when the tween has finished
+  //  */
+  // function setPosition(position, duration, onComplete) {
+  //   if (typeof duration === 'undefined') duration = 1000;
+  //   if (typeof position === 'string') position = findCountry(position).properties.center;
 
-    d3.select({})
-      .transition()
-      .duration(duration)
-      .tween('rotation', () => {
-        const rotation0 = projection.rotate();
-        const lerp = d3.interpolate(rotation0, [-position[0], -position[1]]);
-        return t => {
-          projection.rotate(lerp(t));
-          draw();
+  //   d3.select({})
+  //     .transition()
+  //     .duration(duration)
+  //     .tween('rotation', () => {
+  //       const rotation0 = projection.rotate();
+  //       const lerp = d3.interpolate(rotation0, [-position[0], -position[1]]);
+  //       return t => {
+  //         projection.rotate(lerp(t));
+  //         draw();
 
-          if (t === 1) {
-            onComplete && onComplete();
-          }
-        };
-      });
-  }
+  //         if (t === 1) {
+  //           onComplete && onComplete();
+  //         }
+  //       };
+  //     });
+  // }
 
-  /**
-   * Animate a change in location of the globe
-   * @param {array} vector [x, y] in kilometres to be added to the current [lat, lng] position
-   * @param {number} duration A time in milliseconds
-   * @param {function} onComplete A function to run when the tween has finished
-   */
-  function rotateBy(vector, duration, onComplete) {
-    if (typeof duration === 'undefined') duration = 1000;
+  // /**
+  //  * Animate a change in location of the globe
+  //  * @param {array} vector [x, y] in kilometres to be added to the current [lat, lng] position
+  //  * @param {number} duration A time in milliseconds
+  //  * @param {function} onComplete A function to run when the tween has finished
+  //  */
+  // function rotateBy(vector, duration, onComplete) {
+  //   if (typeof duration === 'undefined') duration = 1000;
 
-    const rotation0 = projection.rotate();
-    const newPosition = [-rotation0[0] + toDegrees(vector[0]), -rotation0[1] + toDegrees(vector[1])];
+  //   const rotation0 = projection.rotate();
+  //   const newPosition = [-rotation0[0] + toDegrees(vector[0]), -rotation0[1] + toDegrees(vector[1])];
 
-    setPosition(newPosition, duration, onComplete);
-  }
+  //   setPosition(newPosition, duration, onComplete);
+  // }
 
   /**
    * Draw a frame to the canvas
@@ -456,7 +464,7 @@
     // c.beginPath();
     // c.strokeStyle = LAND_STROKE_COLOUR;
     // c.lineWidth = 1.4;
-    // path(BORDERS);
+    // path(borders);
     // c.stroke();
 
     // Draw a thicker outline around the globe to hide any circle edges
@@ -518,17 +526,27 @@
     });
   $: onResize(innerWidth, innerHeight);
 
+  // Scales and Easing
+  const speedScale = d3.scaleLinear().domain([0, 1]).range([0, rotationTopSpeed]);
+  speedScale.clamp(true);
+  const easeScale = d3.scaleLinear().domain([0, 1000]).range([0, 1]);
+  easeScale.clamp(true);
+  const speedEase = d3.easeSinOut;
+
   const startSpin = () => {
+    let t = Date.now() - t0;
     if (isTweening || !shouldRotate) return;
-    rotationSpeed < rotationTopSpeed ? (rotationSpeed += 0.001) : null;
-    earthRotation = projection.rotate();
-    earthRotation[0] = earthRotation[0] + rotationSpeed;
-    projection.rotate(earthRotation);
+    const speed = speedScale(speedEase(easeScale(t)));
+    projection.rotate([rotationWhenStarted[0] + speed * t, rotationWhenStarted[1]]);
     draw();
     requestAnimationFrame(startSpin);
   };
 
-  $: !shouldRotate ? (rotationSpeed = 0) : null;
+  $: {
+    if (shouldRotate) {
+      rotationSpeed = 0;
+    }
+  }
 
   onMount(() => {
     function init() {
