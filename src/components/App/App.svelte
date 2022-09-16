@@ -14,7 +14,7 @@
 
   let globeScale = 100;
   let countryCodeFocus = 'GB';
-  let year = 0;
+  let year: number = 0;
   let duration = 1500;
   let shouldRotate = false;
   let isLegendVisible = false;
