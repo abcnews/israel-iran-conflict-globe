@@ -284,6 +284,8 @@
 
     if (typeof position === 'string') position = findCountry(position).properties.center;
 
+    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     const tweenFunction = () => {
       // Reset rotation
       isTweening = true;
@@ -292,8 +294,14 @@
       const rotation0 = projection.rotate();
       const lerpRotation = d3.interpolate(rotation0, [-position[0], -position[1]]);
       return t => {
-        projection.scale(lerpScale(t));
-        projection.rotate(lerpRotation(t));
+        if (shouldReduceMotion) {
+          projection.scale(scaleLocal);
+          projection.rotate([-position[0], -position[1]]);
+        } else {
+          projection.scale(lerpScale(t));
+          projection.rotate(lerpRotation(t));
+        }
+
         globalTime = t;
         draw();
 
