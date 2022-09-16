@@ -16,7 +16,8 @@
   import empireData from './empireData.json';
   import worldComplex from './world-stripped.json';
   import gibraltarJson from './gibraltar.json';
-  import britishIndianOceanTerritoryJson from './britishIndianOceanTerritory.json';
+  import britishIndianOceanTerritoryJson from './british-indian-ocean-territory.json';
+  import saintHelenaJson from './saint-helena-ascension-and-tristan-da-cunha.json';
 
   // Format data to determine if in empire or not
   const earliestYear = 1169;
@@ -147,6 +148,17 @@
       return feature;
     });
 
+  // saint-helena-ascension-and-tristan-da-cunha.json
+
+  const [saintHelena] = topojson
+    .feature(saintHelenaJson, saintHelenaJson.objects['saint-helena-ascension-and-tristan-da-cunha-detailed-boundary_1015'])
+    .features.map(feature => {
+      feature.properties.name = feature.properties.NAME || '';
+      feature.properties.center = d3.geoCentroid(feature);
+      feature.properties.code = 'SH';
+      return feature;
+    });
+
   // More complex world
   const landSansOthers = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
 
@@ -158,11 +170,11 @@
       feature.properties.code = feature.properties.iso_a2;
       return feature;
     });
-  const countries: any = [...countriesSansOthers, antarctica, gibraltar, britishIndianOceanTerritory];
+  const countries: any = [...countriesSansOthers, antarctica, gibraltar, britishIndianOceanTerritory, saintHelena];
   const borders = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
 
   const land = produce(landSansOthers, draft => {
-    draft.features.push(antarctica, gibraltar, britishIndianOceanTerritory);
+    draft.features.push(antarctica, gibraltar, britishIndianOceanTerritory, saintHelena);
   });
 
   // Calculate area of polygon km^2
