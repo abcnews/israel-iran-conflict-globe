@@ -6,6 +6,7 @@
 
   // Components
   import Globe from '../Globe/Globe.svelte';
+  import Legend from '../Legend/Legend.svelte';
 
   export let scrollyData;
 
@@ -16,6 +17,8 @@
   let year = 0;
   let duration = 1500;
   let shouldRotate = false;
+  let isLegendVisible = false;
+  let isLegendObscuringGlobe = false;
 
   const markerChangeHandler = marker => {
     console.log(marker);
@@ -24,6 +27,8 @@
     year = typeof marker.year === 'undefined' ? 0 : marker.year;
     duration = marker.duration || DEFAULT_DURATION;
     shouldRotate = marker.rotate ? true : false;
+    isLegendVisible = year !== 0;
+    isLegendObscuringGlobe = isLegendVisible && globeScale >= 150;
   };
 
   const progressChangeHandler = progress => {};
@@ -37,6 +42,7 @@
 >
   <div class="graphic">
     <Globe zoom={globeScale} focus={countryCodeFocus} {year} {duration} {shouldRotate} />
+    <Legend {year} isVisible={isLegendVisible} isObscuringGlobe={isLegendObscuringGlobe} />
   </div>
 </Scrollyteller>
 
