@@ -43,17 +43,12 @@
 
   function getEmpireForYear(year: number) {
     const lookupResult = empireLookup.get(year)?.in;
+
     // Another special case for PG after 1914
-    if (year > 1914) {
-      // PG not partial
-      const correction = lookupResult.map(country =>
-        country['Country Code'] === 'PG' ? { ...country, Partial: false } : country
-      );
-
-      return correction;
-    }
-
-    return lookupResult;
+    // PG not partial
+    return year > 1914
+      ? lookupResult.map(country => (country['Country Code'] === 'PG' ? { ...country, Partial: false } : country))
+      : lookupResult;
   }
 
   export let background = 'hsl(0, 0%, 98%)';
