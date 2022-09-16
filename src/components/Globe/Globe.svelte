@@ -32,7 +32,7 @@
     empireLookup.set(0, { in: empireData.filter(country => country['Country Code'] === 'GB') });
 
     // Alter Papua New Guinea for ending
-    // NOTE: after 1914 partial false ----
+    // NOTE: after 1914 partial false ---- handled in function below
     const specialCaseEmpireData = produce(empireData, draft => {
       const result = draft.find(country => country['Country Code'] === 'PG');
       if (result) result.Partial = false;
@@ -43,13 +43,25 @@
   });
 
   function getEmpireForYear(year: number) {
-    const lookupResult = empireLookup.get(year)?.in;
+    let finalEmpire;
+    finalEmpire = empireLookup.get(year)?.in;
 
     // Another special case for PG after 1914
     // PG not partial
-    return year > 1914
-      ? lookupResult.map(country => (country['Country Code'] === 'PG' ? { ...country, Partial: false } : country))
-      : lookupResult;
+    if (year >= 1914) {
+      finalEmpire = finalEmpire.map(country =>
+        country['Country Code'] === 'PG' ? { ...country, Partial: false } : country
+      );
+    }
+
+    // Special case Nauru partial some of the time
+    if (year >= 1931 && year <= 1968) {
+      finalEmpire = finalEmpire.map(country =>
+        country['Country Code'] === 'NR' ? { ...country, Partial: true } : country
+      );
+    }
+
+    return finalEmpire;
   }
 
   export let background = 'hsl(0, 0%, 98%)';
@@ -76,16 +88,22 @@
   let countriesToHighlight: any = [];
   let countriesToHighlightPartial = [];
   let prevPartialHighlightedCountryCodes: any = [];
+
   let prevCountriesToRing = [];
+  let prevCountriesToRingPartial = [];
+  let countriesToRingPartial = [];
   let countriesToRing: any = [];
   let ringsToAnimateOut = [];
-  let countriesToAnimateIn: any = [];
+  let ringsToAnimateOutPartial = [];
+
+  let countriesToAnimateInArray: any = [];
   let partialAnimateInArray: any = [];
   let partialAnimateOut: any = [];
   let countriesToAnimateOut: any = [];
   let prevHighlightedCountries: any = [];
   let prevHighlightedCountryCodes: any = [];
   let prevPartialHighlightedCountries: any = [];
+
   let rotationWhenStarted: number = 0;
 
   let isTweening = false;
@@ -119,6 +137,9 @@
   const HIGHLIGHT_COLOR = 'hsl(220, 100%, 27%)';
   const ROTATION_TOP_SPEED: number = 0.025;
   const SPIN_UP_TIME = 3000;
+  const AREA_UNDER_GETS_DOTS = 2500;
+  const PARTIAL_LINE_WIDTH = 1.1;
+  const RING_RADIUS = 0.55;
 
   // Map Features (Keeping because of missing Antarctica)
   // TODO: Integrate into more complex map
@@ -151,7 +172,10 @@
   // saint-helena-ascension-and-tristan-da-cunha.json
 
   const [saintHelena] = topojson
-    .feature(saintHelenaJson, saintHelenaJson.objects['saint-helena-ascension-and-tristan-da-cunha-detailed-boundary_1015'])
+    .feature(
+      saintHelenaJson,
+      saintHelenaJson.objects['saint-helena-ascension-and-tristan-da-cunha-detailed-boundary_1015']
+    )
     .features.map(feature => {
       feature.properties.name = feature.properties.NAME || '';
       feature.properties.center = d3.geoCentroid(feature);
@@ -193,7 +217,7 @@
     const countryCodeArray = inCurrentYearFull.map(country => country['Country Code']);
     countriesToHighlight = countries.filter(country => countryCodeArray.includes(country.properties?.code));
 
-    countriesToAnimateIn = countriesToHighlight
+    countriesToAnimateInArray = countriesToHighlight
       .filter((country: any) => !prevHighlightedCountryCodes.includes(country.properties?.code))
       .map(country => country.properties?.code);
 
@@ -218,11 +242,20 @@
 
     // Little islands to put a ring/circle on
     countriesToRing = countriesToHighlight.filter(country => {
-      return getArea(country) < 1000;
+      return getArea(country) < AREA_UNDER_GETS_DOTS;
+    });
+
+    countriesToRingPartial = countriesToHighlightPartial.filter(country => {
+      return getArea(country) < AREA_UNDER_GETS_DOTS;
     });
 
     ringsToAnimateOut = prevCountriesToRing.filter(
       (country: any) => !countriesToRing.map(country => country.properties?.code).includes(country.properties?.code)
+    );
+
+    ringsToAnimateOutPartial = prevCountriesToRingPartial.filter(
+      (country: any) =>
+        !countriesToRingPartial.map((country: any) => country.properties?.code).includes(country.properties?.code)
     );
 
     prevHighlightedCountryCodes = countriesToHighlight.map(country => country.properties?.code);
@@ -230,6 +263,7 @@
     prevHighlightedCountries = countriesToHighlight;
     prevPartialHighlightedCountries = countriesToHighlightPartial;
     prevCountriesToRing = countriesToRing;
+    prevCountriesToRingPartial = countriesToRingPartial;
   }
 
   $: {
@@ -356,7 +390,7 @@
     // Highlight a country
     countriesToHighlight.forEach((country: any) => {
       c.beginPath();
-      c.fillStyle = countriesToAnimateIn.includes(country.properties?.code)
+      c.fillStyle = countriesToAnimateInArray.includes(country.properties?.code)
         ? `hsla(220, 100%, 27%, ${fadeEase(globalTime)})`
         : HIGHLIGHT_COLOR;
       path(country);
@@ -376,7 +410,7 @@
       c.strokeStyle = partialAnimateInArray.includes(country.properties?.code)
         ? `hsla(223, 100%, 26%, ${fadeEase(globalTime)})`
         : 'hsl(223, 100%, 26%)';
-      c.lineWidth = 1.4;
+      c.lineWidth = PARTIAL_LINE_WIDTH;
       c.fillStyle = partialAnimateInArray.includes(country.properties?.code)
         ? `hsl(219, 45%, 78%, ${fadeEase(globalTime)})`
         : 'hsl(219, 45%, 78%)';
@@ -388,7 +422,7 @@
     partialAnimateOut.forEach((country: any) => {
       c.beginPath();
       c.strokeStyle = `hsla(223, 100%, 26%, ${1.0 - fadeEase(globalTime)})`;
-      c.lineWidth = 1.4;
+      c.lineWidth = PARTIAL_LINE_WIDTH;
       c.fillStyle = `hsl(219, 45%, 78%, ${1.0 - fadeEase(globalTime)})`;
       path(country);
       c.fill();
@@ -397,10 +431,9 @@
 
     // Draw a ring around smaller islands
     countriesToRing.forEach((country: any) => {
+      const circle = d3.geoCircle().center(country.properties?.center).radius(RING_RADIUS);
       c.beginPath();
-      const circle = d3.geoCircle().center(country.properties?.center).radius(0.5);
-      c.beginPath();
-      c.fillStyle = countriesToAnimateIn.includes(country.properties?.code)
+      c.fillStyle = countriesToAnimateInArray.includes(country.properties?.code)
         ? `hsla(220, 100%, 27%, ${fadeEase(globalTime)})`
         : HIGHLIGHT_COLOR;
       path(circle());
@@ -408,12 +441,37 @@
     });
 
     ringsToAnimateOut.forEach((country: any) => {
-      c.beginPath();
-      const circle = d3.geoCircle().center(country.properties?.center).radius(0.5);
+      const circle = d3.geoCircle().center(country.properties?.center).radius(RING_RADIUS);
       c.beginPath();
       c.fillStyle = `hsla(220, 100%, 27%, ${1.0 - fadeEase(globalTime)})`;
       path(circle());
       c.fill();
+    });
+
+    countriesToRingPartial.forEach((country: any) => {
+      const circle = d3.geoCircle().center(country.properties?.center).radius(RING_RADIUS);
+      c.beginPath();
+      c.strokeStyle = partialAnimateInArray.includes(country.properties?.code)
+        ? `hsla(223, 100%, 26%, ${fadeEase(globalTime)})`
+        : 'hsl(223, 100%, 26%)';
+      c.lineWidth = PARTIAL_LINE_WIDTH;
+      c.fillStyle = partialAnimateInArray.includes(country.properties?.code)
+        ? `hsl(219, 45%, 78%, ${fadeEase(globalTime)})`
+        : 'hsl(219, 45%, 78%)';
+      path(circle());
+      c.fill();
+      c.stroke();
+    });
+
+    ringsToAnimateOutPartial.forEach((country: any) => {
+      const circle = d3.geoCircle().center(country.properties?.center).radius(RING_RADIUS);
+      c.beginPath();
+      c.strokeStyle = `hsla(223, 100%, 26%, ${1.0 - fadeEase(globalTime)})`;
+      c.lineWidth = PARTIAL_LINE_WIDTH;
+      c.fillStyle = `hsl(219, 45%, 78%, ${1.0 - fadeEase(globalTime)})`;
+      path(circle());
+      c.fill();
+      c.stroke();
     });
 
     // Draw country outlines
