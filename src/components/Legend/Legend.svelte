@@ -2,10 +2,12 @@
   export let year: number;
   export let isVisible = false;
   export let isObscuringGlobe = false;
+
+  $: clampedYear = Math.max(1901, Math.min(year, 2022));
 </script>
 
 <legend class="legend" class:isVisible class:isObscuringGlobe>
-  <div class="year">{Math.min(year, 2022)}</div>
+  <div class="year">{clampedYear}</div>
   <div class="series british">
     <div class="indicator" />
     <div class="text">British rule</div>
