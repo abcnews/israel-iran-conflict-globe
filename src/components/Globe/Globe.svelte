@@ -30,7 +30,13 @@
 
     // Special cases, only UK, and ALL ever
     empireLookup.set(0, { in: empireData.filter(country => country['Country Code'] === 'GB') });
-    empireLookup.set(4000, { in: empireData });
+
+    // Alter Papua New Guinea for ending
+    const specialCaseEmpireData = produce(empireData, draft => {
+      const result = draft.find(country => country['Country Code'] === 'PG');
+      if (result) result.Partial = false;
+    });
+    empireLookup.set(4000, { in: specialCaseEmpireData });
   });
 
   export let background = 'hsl(0, 0%, 98%)';
@@ -261,10 +267,9 @@
     if (typeof position === 'string') position = findCountry(position).properties.center;
 
     const tweenFunction = () => {
-      // Stop auto rotate & reset initial auto rotate speed
-      isTweening = true;
+      // Reset rotation
       rotationSpeed = 0;
-
+      isTweening = true;
       const scale0 = projection.scale();
       const lerpScale = d3.interpolate(scale0, scaleLocal);
       const rotation0 = projection.rotate();
