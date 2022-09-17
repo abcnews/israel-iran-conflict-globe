@@ -17,9 +17,16 @@ whenOdysseyLoaded.then(() => {
 
   const appMountEl = scrollyData.mountNode;
 
-  appMountEl.classList.add("interactive-globe")
+  appMountEl.classList.add('interactive-globe');
 
   // [appMountEl] = selectMounts('interactivequeenempireglobe');
+
+  // HACK TO FIX VIEWPORT BUG
+  let viewPortTag = document.createElement('meta');
+  viewPortTag.id = 'viewport';
+  viewPortTag.name = 'viewport';
+  viewPortTag.content = 'width=device-width, minimum-scale=1.0';
+  document.getElementsByTagName('head')[0].appendChild(viewPortTag);
 
   if (appMountEl) {
     new App({
