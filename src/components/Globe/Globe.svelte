@@ -8,6 +8,8 @@
   import jankdefer from 'jankdefer';
   import geoJsonArea from '@mapbox/geojson-area';
   import produce from 'immer';
+  import simplify from 'simplify-geojson';
+
 
   // Internal imports
   import worldJson from './world.json';
@@ -15,6 +17,7 @@
   import countryCodes from './countryCodes.json';
   import empireData from './empireData.json';
   import worldComplex from './world-stripped.json';
+  import worldSimple from './world-stripped-simplified.json';
   import gibraltarJson from './gibraltar.json';
   import britishIndianOceanTerritoryJson from './british-indian-ocean-territory.json';
   import saintHelenaJson from './saint-helena-ascension-and-tristan-da-cunha.json';
@@ -184,7 +187,12 @@
     });
 
   // More complex world
+
+  const mergedLand = topojson.merge(worldComplex, worldComplex.objects['custom.geo'].geometries);
+  console.log(mergedLand);
+
   const landSansOthers = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
+  console.log(landSansOthers)
 
   const countriesSansOthers = topojson
     .feature(worldComplex, worldComplex.objects['custom.geo'])
@@ -195,11 +203,15 @@
       return feature;
     });
   const countries: any = [...countriesSansOthers, antarctica, gibraltar, britishIndianOceanTerritory, saintHelena];
-  const borders = topojson.mesh(worldJson, worldJson.objects.countries, (a, b) => a !== b);
+  const borders = topojson.mesh(worldComplex, worldComplex.objects['custom.geo'], (a, b) => a !== b);
 
   const land = produce(landSansOthers, draft => {
     draft.features.push(antarctica, gibraltar, britishIndianOceanTerritory, saintHelena);
   });
+
+  const otherLand = [gibraltar, britishIndianOceanTerritory, saintHelena]
+
+ 
 
   // Calculate area of polygon km^2
   function getArea(country) {
@@ -383,7 +395,8 @@
     c.strokeStyle = LAND_STROKE_COLOUR;
     c.lineWidth = 1.1;
     c.fillStyle = LAND_COLOUR;
-    path(land);
+    path(mergedLand);
+    path(otherLand);
     c.fill();
     c.stroke();
 
@@ -475,11 +488,11 @@
     });
 
     // Draw country outlines
-    // c.beginPath();
-    // c.strokeStyle = LAND_STROKE_COLOUR;
-    // c.lineWidth = 1.4;
-    // path(borders);
-    // c.stroke();
+    c.beginPath();
+    c.strokeStyle = LAND_STROKE_COLOUR;
+    c.lineWidth = 1.1;
+    path(borders);
+    c.stroke();
 
     // Draw a thicker outline around the globe to hide any circle edges
     c.beginPath();

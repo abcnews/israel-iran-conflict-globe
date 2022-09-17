@@ -42,9 +42,11 @@
 		"immer": "^9.0.15",
 		"jankdefer": "^1.0.2",
 		"range-inclusive": "^1.0.2",
+		"simplify-geojson": "^1.0.5",
 		"svelte": "^3.50.1",
 		"svelte-previous": "^2.1.1",
 		"svelte-scrollyteller": "^0.0.8",
-		"topojson-client": "^3.1.0"
+		"topojson-client": "^3.1.0",
+		"topojson-simplify": "^3.0.3"
 	}
 }
