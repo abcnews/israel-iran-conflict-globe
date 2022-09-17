@@ -10,7 +10,6 @@
   import produce from 'immer';
   import simplify from 'simplify-geojson';
 
-
   // Internal imports
   import worldJson from './world.json';
   import countriesJson from './countries.json';
@@ -192,7 +191,7 @@
   console.log(mergedLand);
 
   const landSansOthers = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
-  console.log(landSansOthers)
+  console.log(landSansOthers);
 
   const countriesSansOthers = topojson
     .feature(worldComplex, worldComplex.objects['custom.geo'])
@@ -209,9 +208,7 @@
     draft.features.push(antarctica, gibraltar, britishIndianOceanTerritory, saintHelena);
   });
 
-  const otherLand = [gibraltar, britishIndianOceanTerritory, saintHelena]
-
- 
+  const otherLand = [gibraltar, britishIndianOceanTerritory, saintHelena];
 
   // Calculate area of polygon km^2
   function getArea(country) {
@@ -417,6 +414,13 @@
       c.fill();
     });
 
+    // Draw country outlines
+    c.beginPath();
+    c.strokeStyle = LAND_STROKE_COLOUR;
+    c.lineWidth = 1.1;
+    path(borders);
+    c.stroke();
+
     // Partial highlights
     countriesToHighlightPartial.forEach((country: any) => {
       c.beginPath();
@@ -486,13 +490,6 @@
       c.fill();
       c.stroke();
     });
-
-    // Draw country outlines
-    c.beginPath();
-    c.strokeStyle = LAND_STROKE_COLOUR;
-    c.lineWidth = 1.1;
-    path(borders);
-    c.stroke();
 
     // Draw a thicker outline around the globe to hide any circle edges
     c.beginPath();
