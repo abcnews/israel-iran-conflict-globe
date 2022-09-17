@@ -188,10 +188,8 @@
   // More complex world
 
   const mergedLand = topojson.merge(worldComplex, worldComplex.objects['custom.geo'].geometries);
-  console.log(mergedLand);
 
   const landSansOthers = topojson.feature(worldComplex, worldComplex.objects['custom.geo']);
-  console.log(landSansOthers);
 
   const countriesSansOthers = topojson
     .feature(worldComplex, worldComplex.objects['custom.geo'])
