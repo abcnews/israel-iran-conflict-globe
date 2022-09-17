@@ -718,5 +718,23 @@
     "End date": 1980,
     "Notes": "The white minority government declared independence in 1965 which was not recognised by the international community",
     "Partial": false
+  },
+  {
+    "Country Code": "TV",
+    "Modern country": "Tuvalu",
+    "Historical country": "Tuvalu",
+    "Start date": 1892,
+    "End date": 1978,
+    "Notes": "",
+    "Partial": false
+  },
+  {
+    "Country Code": "KI",
+    "Modern country": "Kirabati",
+    "Historical country": "Kirabati",
+    "Start date": 1892,
+    "End date": 1979,
+    "Notes": "",
+    "Partial": false
   }
- ]
+]
