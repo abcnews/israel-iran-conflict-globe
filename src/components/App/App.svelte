@@ -63,4 +63,8 @@
     margin-left: calc(-50vw + 0px + 50%) !important;
     width: calc(100vw - 0px);
   }
+
+  :global(.Caption-attribution) {
+    white-space: normal !important;
+  }
 </style>
