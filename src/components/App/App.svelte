@@ -64,7 +64,8 @@
     width: calc(100vw - 0px);
   }
 
-  :global(.Caption-attribution) {
-    white-space: normal !important;
-  }
+  // Should be handled by Odyssey now
+  // :global(.Caption-attribution) {
+  //   white-space: normal !important;
+  // }
 </style>
