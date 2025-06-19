@@ -1,4 +1,4 @@
-type Mark = {
+export type Mark = {
   center: [number, number];
   label: string;
   labelVariant: 'city' | 'country' | 'sea';

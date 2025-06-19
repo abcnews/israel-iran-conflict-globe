@@ -6,16 +6,21 @@
     geoOrthographic,
     easeExpIn,
     interpolate,
-    select,
+    transition,
     scaleLinear,
     easeSinOut,
-    type GeoGeometryObjects
+    type GeoGeometryObjects,
+    geoCentroid
   } from 'd3';
+  import { bbox as getBBox } from '@turf/bbox';
+  import { center } from '@turf/center';
   import canvasDpiScaler from 'canvas-dpi-scaler';
   import { onMount } from 'svelte';
+  import { tweened } from 'svelte/motion';
 
   // Internal imports
   import worldComplex from './world-stripped.json';
+  import type { FeatureCollection, Position } from 'geojson';
 
   export let background = 'hsl(0, 0%, 98%)';
   export let zoom = 100;
@@ -23,10 +28,30 @@
   export let focus: [number, number] = [0, 0];
   export let year = 0;
   export let shouldRotate = false;
+  export let view: FeatureCollection;
+
+  const updateView = (view: FeatureCollection) => {
+    if (!view) return;
+
+    // Calculate the new scale and rotation
+    const proj = geoOrthographic().clipAngle(90).fitSize([width, height], view);
+    const focus = center(view);
+
+    // Update the tweened values
+    $scaleTween = proj.scale();
+    $rotationTween = focus.geometry.coordinates;
+  };
+
+  $: updateView(view);
+
+  $: {
+    projection.scale($scaleTween);
+    projection.rotate([-$rotationTween[0], -$rotationTween[1]]);
+    draw(1);
+  }
 
   let t0 = Date.now();
 
-  let globalTime: number;
   let innerWidth: number;
   let innerHeight: number;
   let isInitialised = false;
@@ -65,6 +90,10 @@
       globe
     );
 
+  const scaleTween = tweened(0, { duration, easing: easeExpIn });
+  const fadeTween = tweened(0, { duration });
+  const rotationTween = tweened<Position>([0, 0], { duration, easing: easeExpIn });
+
   const OCEAN_COLOUR = '#173543';
   const LAND_COLOUR = '#333639';
   const LAND_STROKE_COLOUR = '#585858';
@@ -73,7 +102,10 @@
   const ROTATION_TOP_SPEED: number = 0.025;
   const SPIN_UP_TIME = 3000;
 
-  const mergedLand = topojson.merge(worldComplex, worldComplex.objects['custom.geo'].geometries);
+  // Merge all the geometries into a single 'land' geometry
+  const land = topojson.merge(worldComplex, worldComplex.objects['custom.geo'].geometries);
+
+  // Get a MultiLineString that contains only internal boundaries.
   const borders = topojson.mesh(worldComplex, worldComplex.objects['custom.geo'], (a, b) => a !== b);
 
   // Here we are separating different countries and giving them different animations
@@ -110,7 +142,7 @@
       const lerpScale = interpolate(scale0, scaleLocal);
       const rotation0 = projection.rotate();
       const lerpRotation = interpolate<[number, number]>(rotation0, [-position[0], -position[1]]);
-      return t => {
+      return (t: number) => {
         if (shouldReduceMotion) {
           projection.scale(scaleLocal);
           projection.rotate([-position[0], -position[1]]);
@@ -119,8 +151,7 @@
           projection.rotate(lerpRotation(t));
         }
 
-        globalTime = t;
-        draw();
+        draw(t);
 
         if (t === 1) {
           isTweening = false;
@@ -134,13 +165,13 @@
       };
     };
 
-    select({}).transition().duration(duration).tween('scaleAndRotation', tweenFunction);
+    transition().duration(duration).tween('scaleAndRotation', tweenFunction);
   }
 
   /**
    * Draw a frame to the canvas
    */
-  function draw() {
+  function draw(t: number) {
     if (isDrawing || !context || !path) return;
     isDrawing = true;
 
@@ -157,7 +188,7 @@
     context.strokeStyle = LAND_STROKE_COLOUR;
     context.lineWidth = 1.1;
     context.fillStyle = LAND_COLOUR;
-    path(mergedLand);
+    path(land);
 
     context.fill();
     context.stroke();
@@ -167,7 +198,7 @@
       if (!context) return;
       context.beginPath();
       context.fillStyle = countriesToAnimateInArray.includes(country.properties?.code)
-        ? `hsla(220, 100%, 27%, ${fadeEase(globalTime)})`
+        ? `hsla(220, 100%, 27%, ${fadeEase(t)})`
         : HIGHLIGHT_COLOR;
       path(country);
       context.fill();
@@ -176,7 +207,7 @@
     countriesToAnimateOut.forEach((country: any) => {
       if (!context) return;
       context.beginPath();
-      context.fillStyle = `hsl(220, 100%, 27%, ${1.0 - fadeEase(globalTime)})`;
+      context.fillStyle = `hsl(220, 100%, 27%, ${1.0 - fadeEase(t)})`;
       path(country);
       context.fill();
     });
@@ -207,10 +238,10 @@
     isDrawing = false;
   }
 
-  $: canvas &&
-    setScaleAndPosition(zoom, focus, isInitialised ? duration : 0, () => {
-      isInitialised = true;
-    });
+  // $: canvas &&
+  //   setScaleAndPosition(zoom, focus, isInitialised ? duration : 0, () => {
+  //     isInitialised = true;
+  //   });
 
   // Scales and Easing
   const speedScale = scaleLinear().domain([0, 1]).range([0, ROTATION_TOP_SPEED]);
@@ -224,7 +255,7 @@
     if (isTweening || !shouldRotate) return;
     const speed = speedScale(speedEase(easeScale(t)));
     projection.rotate([rotationWhenStarted[0] + speed * t, rotationWhenStarted[1]]);
-    draw();
+    draw(t);
     requestAnimationFrame(startSpin);
   };
 
