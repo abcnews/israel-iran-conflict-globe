@@ -9,10 +9,8 @@
     transition,
     scaleLinear,
     easeSinOut,
-    type GeoGeometryObjects,
-    geoCentroid
+    type GeoGeometryObjects
   } from 'd3';
-  import { bbox as getBBox } from '@turf/bbox';
   import { center } from '@turf/center';
   import canvasDpiScaler from 'canvas-dpi-scaler';
   import { onMount } from 'svelte';

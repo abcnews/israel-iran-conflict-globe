@@ -1,12 +1,6 @@
-import acto from '@abcnews/alternating-case-to-object';
 import { whenOdysseyLoaded } from '@abcnews/env-utils';
-import { getMountValue, selectMounts } from '@abcnews/mount-utils';
-import type { Mount } from '@abcnews/mount-utils';
 import App from './components/App/App.svelte';
-import { loadScrollyteller } from 'svelte-scrollyteller';
-
-let appMountEl: Mount;
-let appProps;
+import { loadScrollyteller } from '@abcnews/svelte-scrollyteller';
 
 whenOdysseyLoaded.then(() => {
   const scrollyData = loadScrollyteller(
@@ -18,8 +12,6 @@ whenOdysseyLoaded.then(() => {
   const appMountEl = scrollyData.mountNode;
 
   appMountEl.classList.add('interactive-globe');
-
-  // [appMountEl] = selectMounts('interactivequeenempireglobe');
 
   // HACK TO FIX VIEWPORT BUG
   let viewPortTag = document.createElement('meta');
@@ -37,5 +29,5 @@ whenOdysseyLoaded.then(() => {
 });
 
 if (process.env.NODE_ENV === 'development') {
-  console.debug(`[Interactive Queen Empire Globe] public path: ${__webpack_public_path__}`);
+  console.debug(`[Interactive Globe] public path: ${__webpack_public_path__}`);
 }
