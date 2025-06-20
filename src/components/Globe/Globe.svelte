@@ -1,7 +1,7 @@
 <script lang="ts">
   // External imports
   import * as topojson from 'topojson-client';
-  import { geoPath, geoCircle, geoOrthographic, scaleLinear, type GeoGeometryObjects, easeExpInOut } from 'd3';
+  import { geoPath, geoOrthographic, scaleLinear, type GeoGeometryObjects, easeExpInOut } from 'd3';
   import { center } from '@turf/center';
   import { tweened } from 'svelte/motion';
   import { drawLabels } from './draw';
@@ -78,19 +78,31 @@
 
   const updateView = (view: FeatureCollection) => {
     // Calculate the new scale and rotation
-    const proj = geoOrthographic().clipAngle(90).precision(0.6).fitSize([width, height], view);
-    const focus = center(view);
+
+    // Must know rotation before calculating scale.
+    const [lambda, phi] = center(view).geometry.coordinates.map(d => -d);
+    const nextProjection = geoOrthographic().rotate([lambda, phi]).fitSize([width, height], view);
+    const scale = nextProjection.scale();
+
+    // TODO: Calculate the maximum angle for current and future scale and rotation
+
+    // projection.preclip(geoClipCircle(10));
 
     // Update the tweened values
-    $scaleTween = proj.scale();
-    $rotationTween = focus.geometry.coordinates;
+    $scaleTween = scale;
+    $rotationTween = [lambda, phi];
   };
+
+  $: projection.clipExtent([
+    [0, 0],
+    [width, height]
+  ]);
 
   $: view && updateView(view);
 
   $: {
     projection.scale($scaleTween);
-    projection.rotate([-$rotationTween[0], -$rotationTween[1]]);
+    projection.rotate([$rotationTween[0], $rotationTween[1]]);
     draw(1);
     if (context && path) {
       context.beginPath();
