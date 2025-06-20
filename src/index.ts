@@ -1,8 +1,9 @@
 import { whenOdysseyLoaded } from '@abcnews/env-utils';
 import App from './components/App/App.svelte';
 import { loadScrollyteller } from '@abcnews/svelte-scrollyteller';
+import { proxy } from '@abcnews/dev-proxy';
 
-whenOdysseyLoaded.then(() => {
+Promise.all([whenOdysseyLoaded, proxy('israel-iran-conflict-globe')]).then(() => {
   const scrollyData = loadScrollyteller(
     'one', // If set to eg. "one" use #scrollytellerNAMEone in CoreMedia
     'u-full', // Class to apply to mount point u-full makes it full width in Odyssey
