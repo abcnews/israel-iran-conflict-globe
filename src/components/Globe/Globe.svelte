@@ -1,23 +1,24 @@
 <script lang="ts">
   // External imports
   import * as topojson from 'topojson-client';
-  import { geoPath, geoOrthographic, scaleLinear, type GeoGeometryObjects, easeExpInOut } from 'd3';
+  import { geoPath, geoCircle, geoOrthographic, scaleLinear, type GeoGeometryObjects, easeExpInOut } from 'd3';
   import { center } from '@turf/center';
   import { tweened } from 'svelte/motion';
+  import { drawLabels } from './draw';
 
   // Internal imports
   import worldComplex from './world-stripped.json';
   import type { FeatureCollection, Position } from 'geojson';
+  import type { Mark } from '../App/markers';
 
   export let background = 'hsl(0, 0%, 98%)';
   export let duration = 1250;
   export let shouldRotate = false;
   export let view: FeatureCollection;
-  export let marks;
-  export let highlights;
+  export let marks: Mark[];
+  export let highlights: string[];
 
   let t0 = Date.now();
-
   let rootEl: HTMLDivElement;
   let canvas: HTMLCanvasElement;
   let width: number = 0;
@@ -25,12 +26,13 @@
   let context: CanvasRenderingContext2D | null;
   let path: ReturnType<typeof geoPath>;
   let isDrawing = false;
-  let countriesToHighlight: any = [];
 
-  let countriesToAnimateInArray: any = [];
-  let countriesToAnimateOut: any = [];
-  let prevHighlightedCountries: any = [];
-  let prevHighlightedCountryCodes: any = [];
+  let countriesToHighlight: string[] = [];
+
+  let countriesToAnimateInArray: string[] = [];
+  let countriesToAnimateOut: string[] = [];
+  let prevHighlightedCountries: string[] = [];
+  let prevHighlightedCountryCodes: string[] = [];
 
   let rotationWhenStarted: [number, number, number] = [0, 0, 0];
 
@@ -48,7 +50,7 @@
   const LAND_COLOUR = '#333639';
   const LAND_STROKE_COLOUR = '#585858';
   const GLOBE_OUTLINE_COLOR = '#CCCCCC';
-  const HIGHLIGHT_COLOR = 'hsl(220, 100%, 27%)';
+  const HIGHLIGHT_COLOR = '#C3C3C3';
   const ROTATION_TOP_SPEED: number = 0.025;
   const SPIN_UP_TIME = 3000;
 
@@ -58,20 +60,19 @@
   // Get a MultiLineString that contains only internal boundaries.
   const borders = topojson.mesh(worldComplex, worldComplex.objects['custom.geo'], (a, b) => a !== b);
 
-  // Here we are separating different countries and giving them different animations
-  // depending on if they're partials or fading in or fading out.
-  function doHighlightCalculations() {
-    // Get full highlight countries
-    highlights.forEach(console.log);
-    prevHighlightedCountryCodes = countriesToHighlight.map(country => country.properties?.code);
-    prevHighlightedCountries = countriesToHighlight;
-  }
+  // Get all the countries
+  const countries = new Map(
+    worldComplex.objects['custom.geo'].geometries.map(country => {
+      return [country.properties.iso_a2, topojson.feature(worldComplex, country)];
+    })
+  );
 
-  $: marks?.forEach(console.log);
+  // $: {
+  //   const prev = countriesToHighlight;
+  //   const next = highlights;
+  // }
 
-  $: {
-    projection.fitSize([width, height], globe); // TODO: this should maybe not happen
-  }
+  $: projection.fitSize([width, height], globe); // TODO: this should maybe not be needed, but it is??
 
   const updateView = (view: FeatureCollection) => {
     // Calculate the new scale and rotation
@@ -122,6 +123,16 @@
     context.fill();
     context.stroke();
 
+    highlights?.forEach(code => {
+      const country = countries.get(code);
+      if (context && country) {
+        context.beginPath();
+        context.fillStyle = HIGHLIGHT_COLOR;
+        path(country);
+        context.fill();
+      }
+    });
+
     // Highlight a country
     countriesToHighlight.forEach((country: any) => {
       if (!context) return;
@@ -148,6 +159,24 @@
     path(borders);
     context.stroke();
 
+    // Draw marks
+    marks?.forEach(mark => {
+      if (mark.markVariant === 'none') return;
+      const position = projection(mark.center);
+      if (context && position) {
+        const [x, y] = position;
+        // Draw dot
+
+        context.beginPath();
+        context.fillStyle = '#AF3838';
+        context.strokeStyle = '#fff';
+        context.lineWidth = 2;
+        context.arc(x, y, 4, 0, Math.PI * 2);
+        context.fill();
+        context.stroke();
+      }
+    });
+
     // Draw a thicker outline around the globe to hide any circle edges
     context.beginPath();
     context.strokeStyle = background;
@@ -164,6 +193,13 @@
     context.stroke();
     projection.scale(projection.scale() + 5);
 
+    // Draw any labels
+    if (marks)
+      drawLabels(
+        context,
+        projection,
+        marks.filter(d => d.label)
+      );
     isDrawing = false;
   }
 
