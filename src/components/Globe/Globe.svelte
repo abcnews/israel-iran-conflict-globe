@@ -7,9 +7,11 @@
   import { drawLabels } from './draw';
 
   // Internal imports
-  import worldComplex from './world-stripped.json';
+  import worldComplex from './world-50m-simplified-0.4.topo.json';
   import type { FeatureCollection, Position } from 'geojson';
   import type { Mark } from '../App/markers';
+
+  const topoObjKey = 'world-50m.geo';
 
   export let background = 'hsl(0, 0%, 98%)';
   export let duration = 1250;
@@ -55,14 +57,14 @@
   const SPIN_UP_TIME = 3000;
 
   // Merge all the geometries into a single 'land' geometry
-  const land = topojson.merge(worldComplex, worldComplex.objects['custom.geo'].geometries);
+  const land = topojson.merge(worldComplex, worldComplex.objects[topoObjKey].geometries);
 
   // Get a MultiLineString that contains only internal boundaries.
-  const borders = topojson.mesh(worldComplex, worldComplex.objects['custom.geo'], (a, b) => a !== b);
+  const borders = topojson.mesh(worldComplex, worldComplex.objects[topoObjKey], (a, b) => a !== b);
 
   // Get all the countries
   const countries = new Map(
-    worldComplex.objects['custom.geo'].geometries.map(country => {
+    worldComplex.objects[topoObjKey].geometries.map(country => {
       return [country.properties.iso_a2, topojson.feature(worldComplex, country)];
     })
   );
