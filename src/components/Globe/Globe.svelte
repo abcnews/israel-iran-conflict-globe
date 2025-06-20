@@ -1,19 +1,8 @@
 <script lang="ts">
   // External imports
   import * as topojson from 'topojson-client';
-  import {
-    geoPath,
-    geoOrthographic,
-    easeExpIn,
-    interpolate,
-    transition,
-    scaleLinear,
-    easeSinOut,
-    type GeoGeometryObjects
-  } from 'd3';
+  import { geoPath, geoOrthographic, scaleLinear, type GeoGeometryObjects, easeExpInOut } from 'd3';
   import { center } from '@turf/center';
-  import canvasDpiScaler from 'canvas-dpi-scaler';
-  import { onMount } from 'svelte';
   import { tweened } from 'svelte/motion';
 
   // Internal imports
@@ -21,42 +10,18 @@
   import type { FeatureCollection, Position } from 'geojson';
 
   export let background = 'hsl(0, 0%, 98%)';
-  export let zoom = 100;
   export let duration = 1250;
-  export let focus: [number, number] = [0, 0];
-  export let year = 0;
   export let shouldRotate = false;
   export let view: FeatureCollection;
-
-  const updateView = (view: FeatureCollection) => {
-    if (!view) return;
-
-    // Calculate the new scale and rotation
-    const proj = geoOrthographic().clipAngle(90).fitSize([width, height], view);
-    const focus = center(view);
-
-    // Update the tweened values
-    $scaleTween = proj.scale();
-    $rotationTween = focus.geometry.coordinates;
-  };
-
-  $: updateView(view);
-
-  $: {
-    projection.scale($scaleTween);
-    projection.rotate([-$rotationTween[0], -$rotationTween[1]]);
-    draw(1);
-  }
+  export let marks;
+  export let highlights;
 
   let t0 = Date.now();
 
-  let innerWidth: number;
-  let innerHeight: number;
-  let isInitialised = false;
   let rootEl: HTMLDivElement;
   let canvas: HTMLCanvasElement;
-  let width = window.innerWidth;
-  let height = window.innerHeight;
+  let width: number = 0;
+  let height: number = 0;
   let context: CanvasRenderingContext2D | null;
   let path: ReturnType<typeof geoPath>;
   let isDrawing = false;
@@ -73,24 +38,11 @@
 
   const globe: GeoGeometryObjects = { type: 'Sphere' };
 
-  const fadeEase = easeExpIn;
+  const projection = geoOrthographic().clipAngle(90).precision(0.6);
 
-  const margin = 20;
-
-  const projection = geoOrthographic()
-    .clipAngle(90)
-    .precision(0.6)
-    .fitExtent(
-      [
-        [margin, margin],
-        [width - margin, height - margin]
-      ],
-      globe
-    );
-
-  const scaleTween = tweened(0, { duration, easing: easeExpIn });
+  const scaleTween = tweened(0, { duration, easing: easeExpInOut });
   const fadeTween = tweened(0, { duration });
-  const rotationTween = tweened<Position>([0, 0], { duration, easing: easeExpIn });
+  const rotationTween = tweened<Position>([0, 0], { duration, easing: easeExpInOut });
 
   const OCEAN_COLOUR = '#173543';
   const LAND_COLOUR = '#333639';
@@ -110,60 +62,39 @@
   // depending on if they're partials or fading in or fading out.
   function doHighlightCalculations() {
     // Get full highlight countries
-
+    highlights.forEach(console.log);
     prevHighlightedCountryCodes = countriesToHighlight.map(country => country.properties?.code);
     prevHighlightedCountries = countriesToHighlight;
   }
 
+  $: marks?.forEach(console.log);
+
   $: {
-    year;
-    focus;
-    zoom;
-    doHighlightCalculations();
+    projection.fitSize([width, height], globe); // TODO: this should maybe not happen
   }
 
-  /**
-   * Animate a change in both zoom and location
-   */
-  function setScaleAndPosition(
-    scaleLocal: number,
-    position: [number, number],
-    duration: number = 1000,
-    onComplete: () => void = () => {}
-  ) {
-    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const updateView = (view: FeatureCollection) => {
+    // Calculate the new scale and rotation
+    const proj = geoOrthographic().clipAngle(90).precision(0.6).fitSize([width, height], view);
+    const focus = center(view);
 
-    const tweenFunction = () => {
-      // Reset rotation
-      isTweening = true;
-      const scale0 = projection.scale();
-      const lerpScale = interpolate(scale0, scaleLocal);
-      const rotation0 = projection.rotate();
-      const lerpRotation = interpolate<[number, number]>(rotation0, [-position[0], -position[1]]);
-      return (t: number) => {
-        if (shouldReduceMotion) {
-          projection.scale(scaleLocal);
-          projection.rotate([-position[0], -position[1]]);
-        } else {
-          projection.scale(lerpScale(t));
-          projection.rotate(lerpRotation(t));
-        }
+    // Update the tweened values
+    $scaleTween = proj.scale();
+    $rotationTween = focus.geometry.coordinates;
+  };
 
-        draw(t);
+  $: view && updateView(view);
 
-        if (t === 1) {
-          isTweening = false;
-          if (canvas && shouldRotate && isInitialised) {
-            t0 = Date.now();
-            rotationWhenStarted = projection.rotate();
-            startSpin();
-          }
-          onComplete && onComplete();
-        }
-      };
-    };
-
-    transition().duration(duration).tween('scaleAndRotation', tweenFunction);
+  $: {
+    projection.scale($scaleTween);
+    projection.rotate([-$rotationTween[0], -$rotationTween[1]]);
+    draw(1);
+    if (context && path) {
+      context.beginPath();
+      context.strokeStyle = 'red';
+      path(view);
+      context.stroke();
+    }
   }
 
   /**
@@ -196,7 +127,7 @@
       if (!context) return;
       context.beginPath();
       context.fillStyle = countriesToAnimateInArray.includes(country.properties?.code)
-        ? `hsla(220, 100%, 27%, ${fadeEase(t)})`
+        ? `hsla(220, 100%, 27%, ${easeExpInOut(t)})`
         : HIGHLIGHT_COLOR;
       path(country);
       context.fill();
@@ -205,7 +136,7 @@
     countriesToAnimateOut.forEach((country: any) => {
       if (!context) return;
       context.beginPath();
-      context.fillStyle = `hsl(220, 100%, 27%, ${1.0 - fadeEase(t)})`;
+      context.fillStyle = `hsl(220, 100%, 27%, ${1.0 - easeExpInOut(t)})`;
       path(country);
       context.fill();
     });
@@ -236,50 +167,36 @@
     isDrawing = false;
   }
 
-  // $: canvas &&
-  //   setScaleAndPosition(zoom, focus, isInitialised ? duration : 0, () => {
-  //     isInitialised = true;
-  //   });
-
   // Scales and Easing
   const speedScale = scaleLinear().domain([0, 1]).range([0, ROTATION_TOP_SPEED]);
   speedScale.clamp(true);
   const easeScale = scaleLinear().domain([0, SPIN_UP_TIME]).range([0, 1]);
   easeScale.clamp(true);
-  const speedEase = easeSinOut;
 
   const startSpin = () => {
     let t = Date.now() - t0;
     if (isTweening || !shouldRotate) return;
-    const speed = speedScale(speedEase(easeScale(t)));
+    const speed = speedScale(easeExpInOut(easeScale(t)));
     projection.rotate([rotationWhenStarted[0] + speed * t, rotationWhenStarted[1]]);
     draw(t);
     requestAnimationFrame(startSpin);
   };
 
-  onMount(() => {
-    if (canvas && context) {
-      canvasDpiScaler(canvas, context);
+  $: if (canvas) {
+    context = canvas.getContext('2d');
+    if (context) {
+      context.beginPath();
+      context.fillStyle = 'rgba(0, 0, 0, 0.0)';
+      context.font = '700 18px ABCSans';
+      context.fillText('Preloading ABC Sans...', 100, 100);
+      path = geoPath(projection, context);
     }
-  });
-
-  $: context = canvas && canvas.getContext('2d');
-
-  $: if (canvas && context) {
-    // Do some preload magic to stop font flicker
-    context.beginPath();
-    context.fillStyle = 'rgba(0, 0, 0, 0.0)';
-    context.font = '700 18px ABCSans';
-    context.fillText('Preloading ABC Sans...', 100, 100);
-    path = geoPath(projection, context);
   }
 </script>
 
 <div class="root" bind:this={rootEl} bind:clientWidth={width} bind:clientHeight={height}>
   <canvas {width} {height} bind:this={canvas}> </canvas>
 </div>
-
-<svelte:window bind:innerWidth bind:innerHeight />
 
 <style lang="scss">
   div.root {

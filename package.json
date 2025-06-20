@@ -37,6 +37,7 @@
     "@abcnews/dev-proxy": "github:abcnews/dev-proxy",
     "@abcnews/svelte-scrollyteller": "^2.1.0",
     "@mapbox/geojson-area": "^0.2.2",
+    "@mapbox/geojson-rewind": "^0.5.2",
     "@turf/bbox": "^7.2.0",
     "@turf/center": "^7.2.0",
     "canvas-dpi-scaler": "^0.0.3",
