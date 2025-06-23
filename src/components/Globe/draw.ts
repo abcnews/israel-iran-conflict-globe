@@ -1,4 +1,4 @@
-import { geoDistance, type GeoProjection } from 'd3-geo';
+import { geoDistance, geoPath, type GeoPermissibleObjects, type GeoProjection } from 'd3-geo';
 import type { Mark } from '../App/markers';
 // TODO: Clean this function up.
 export const drawLabels = (context: CanvasRenderingContext2D, projection: GeoProjection, labels: Mark[]) => {
@@ -174,4 +174,29 @@ export const drawLabels = (context: CanvasRenderingContext2D, projection: GeoPro
         labelDefault(label, index);
     }
   });
+};
+
+type PathStyles = {
+  strokeStyle?: string;
+  fillStyle?: string;
+  lineWidth?: number;
+};
+
+export const drawPath = (
+  context: CanvasRenderingContext2D,
+  path: ReturnType<typeof geoPath>,
+  styles: PathStyles,
+  geojson: GeoPermissibleObjects
+) => {
+  context.beginPath();
+  let stroke = false;
+  let fill = false;
+  for (let key in styles) {
+    context[key] = styles[key];
+    if (key.startsWith('fill')) fill = true;
+    if (key.startsWith('stroke')) stroke = true;
+  }
+  path(geojson);
+  if (fill) context.fill();
+  if (stroke) context.stroke();
 };
