@@ -1,10 +1,16 @@
 <script lang="ts">
   // External imports
   import * as topojson from 'topojson-client';
-  import { geoPath, geoOrthographic, scaleLinear, type GeoGeometryObjects, easeExpInOut } from 'd3';
+  import { geoPath, geoOrthographic, scaleLinear, type GeoGeometryObjects, easeExpInOut, geoDistance } from 'd3';
   import { center } from '@turf/center';
+  import { bbox } from '@turf/bbox';
+  import { envelope } from '@turf/envelope';
+  import { bboxPolygon } from '@turf/bbox-polygon';
+  import { point, featureCollection } from '@turf/helpers';
+  import { intersect } from '@turf/intersect';
   import { tweened } from 'svelte/motion';
   import { drawLabels } from './draw';
+  import { createTween } from './tween';
 
   // Internal imports
   import worldComplex from './world-50m-simplified-0.4.topo.json';
@@ -18,7 +24,7 @@
   export let shouldRotate = false;
   export let view: FeatureCollection;
   export let marks: Mark[];
-  export let highlights: string[];
+  export let highlights: string[] = [];
 
   let t0 = Date.now();
   let rootEl: HTMLDivElement;
@@ -45,7 +51,6 @@
   const projection = geoOrthographic().clipAngle(90).precision(0.6);
 
   const scaleTween = tweened(0, { duration, easing: easeExpInOut });
-  const fadeTween = tweened(0, { duration });
   const rotationTween = tweened<Position>([0, 0], { duration, easing: easeExpInOut });
 
   const OCEAN_COLOUR = '#173543';
@@ -57,39 +62,49 @@
   const SPIN_UP_TIME = 3000;
 
   // Merge all the geometries into a single 'land' geometry
-  const land = topojson.merge(worldComplex, worldComplex.objects[topoObjKey].geometries);
+  let land = topojson.merge(worldComplex, worldComplex.objects[topoObjKey].geometries);
+  const allLand = land;
 
   // Get a MultiLineString that contains only internal boundaries.
-  const borders = topojson.mesh(worldComplex, worldComplex.objects[topoObjKey], (a, b) => a !== b);
+  let borders = topojson.mesh(worldComplex, worldComplex.objects[topoObjKey], (a, b) => a !== b);
+  const allBorders = borders;
 
   // Get all the countries
-  const countries = new Map(
-    worldComplex.objects[topoObjKey].geometries.map(country => {
-      return [country.properties.iso_a2, topojson.feature(worldComplex, country)];
+  const countries = worldComplex.objects[topoObjKey].geometries.map(country => {
+    const geojson = topojson.feature(worldComplex, country);
+    geojson.bbox = bbox(geojson);
+    return { id: country.properties.iso_a2, geojson, opacity: createTween(0, duration) };
+  });
+
+  const countriesMap = new Map(
+    countries.map(country => {
+      return [country.id, country];
     })
   );
 
-  // $: {
-  //   const prev = countriesToHighlight;
-  //   const next = highlights;
-  // }
+  $: countries.forEach(country => {
+    country.opacity.target = highlights.includes(country.id) ? 1 : 0;
+  });
 
   $: projection.fitSize([width, height], globe); // TODO: this should maybe not be needed, but it is??
-
+  const rad2deg = (deg: number) => (deg * 180) / Math.PI;
   const updateView = (view: FeatureCollection) => {
     // Calculate the new scale and rotation
 
     // Must know rotation before calculating scale.
     const [lambda, phi] = center(view).geometry.coordinates.map(d => -d);
     const nextProjection = geoOrthographic().rotate([lambda, phi]).fitSize([width, height], view);
-    const scale = nextProjection.scale();
+    const nextScale = nextProjection.scale();
 
     // TODO: Calculate the maximum angle for current and future scale and rotation
 
-    // projection.preclip(geoClipCircle(10));
+    const currentAngle = rad2deg(geoDistance(projection.invert?.([0, 0]), projection.invert?.([width, height])));
+    const nextAngle = rad2deg(geoDistance(nextProjection.invert?.([0, 0]), nextProjection.invert?.([width, height])));
+
+    projection.clipAngle(Math.min(90, Math.max(currentAngle, nextAngle)));
 
     // Update the tweened values
-    $scaleTween = scale;
+    $scaleTween = nextScale;
     $rotationTween = [lambda, phi];
   };
 
@@ -103,13 +118,14 @@
   $: {
     projection.scale($scaleTween);
     projection.rotate([$rotationTween[0], $rotationTween[1]]);
+
     draw(1);
-    if (context && path) {
-      context.beginPath();
-      context.strokeStyle = 'red';
-      path(view);
-      context.stroke();
-    }
+    // if (context && path) {
+    //   context.beginPath();
+    //   context.strokeStyle = 'red';
+    //   path(view);
+    //   context.stroke();
+    // }
   }
 
   /**
@@ -137,34 +153,16 @@
     context.fill();
     context.stroke();
 
-    highlights?.forEach(code => {
-      const country = countries.get(code);
-      if (context && country) {
-        context.beginPath();
-        context.fillStyle = HIGHLIGHT_COLOR;
-        path(country);
-        context.fill();
-      }
-    });
-
-    // Highlight a country
-    countriesToHighlight.forEach((country: any) => {
-      if (!context) return;
-      context.beginPath();
-      context.fillStyle = countriesToAnimateInArray.includes(country.properties?.code)
-        ? `hsla(220, 100%, 27%, ${easeExpInOut(t)})`
-        : HIGHLIGHT_COLOR;
-      path(country);
-      context.fill();
-    });
-
-    countriesToAnimateOut.forEach((country: any) => {
-      if (!context) return;
-      context.beginPath();
-      context.fillStyle = `hsl(220, 100%, 27%, ${1.0 - easeExpInOut(t)})`;
-      path(country);
-      context.fill();
-    });
+    countries
+      .filter(c => c.opacity.value > 0)
+      .forEach(({ geojson, opacity }) => {
+        if (context && geojson) {
+          context.beginPath();
+          context.fillStyle = `${HIGHLIGHT_COLOR}${Math.round(opacity.value * 255).toString(16)}`;
+          path(geojson);
+          context.fill();
+        }
+      });
 
     // Draw country outlines
     context.beginPath();

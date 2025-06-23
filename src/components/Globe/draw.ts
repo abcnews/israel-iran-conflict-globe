@@ -1,14 +1,19 @@
-import { geoDistance } from 'd3-geo';
+import { geoDistance, type GeoProjection } from 'd3-geo';
 import type { Mark } from '../App/markers';
-
-export const drawLabels = (context: CanvasRenderingContext2D, projection, labels: Mark[]) => {
+// TODO: Clean this function up.
+export const drawLabels = (context: CanvasRenderingContext2D, projection: GeoProjection, labels: Mark[]) => {
   const labelDefault = (label: Mark, index: number) => {
+    const position = projection(label.center);
+
+    // Quit early if the label center isn't valid
+    if (!position) return;
+
     const fontSize = window.innerWidth < 500 ? 16 : 18;
 
     // Set this before measuring
     context.font = `700 ${fontSize}px ABCSans`;
 
-    const [x, y] = projection(label.center);
+    const [x, y] = position;
 
     const labelTextPadding = 18;
     const labelTextOffset = window.innerWidth < 500 ? 20 : 30;
