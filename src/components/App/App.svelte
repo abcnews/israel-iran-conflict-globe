@@ -53,7 +53,7 @@
   };
 </script>
 
-<Scrollyteller panels={scrollyData.panels} onMarker={markerChangeHandler}>
+<Scrollyteller panels={scrollyData.panels} onMarker={markerChangeHandler} layout={{ resizeInteractive: false }}>
   <div class="graphic">
     <Globe {view} {marks} {highlights} {duration} {shouldRotate} />
   </div>
@@ -63,13 +63,5 @@
   .graphic {
     height: 100%;
     width: 100%;
-    background-color: hsl(0, 0%, 98%);
-    display: flex;
-  }
-
-  :global(.u-layout > div.interactive-globe) {
-    // Fix for Odyssey
-    margin-left: calc(-50vw + 0px + 50%) !important;
-    width: calc(100vw - 0px);
   }
 </style>

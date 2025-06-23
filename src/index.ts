@@ -2,6 +2,7 @@ import { whenOdysseyLoaded } from '@abcnews/env-utils';
 import App from './components/App/App.svelte';
 import { loadScrollyteller } from '@abcnews/svelte-scrollyteller';
 import { proxy } from '@abcnews/dev-proxy';
+import { mount } from "svelte";
 
 Promise.all([whenOdysseyLoaded, proxy('israel-iran-conflict-globe')]).then(() => {
   const scrollyData = loadScrollyteller(
@@ -22,10 +23,10 @@ Promise.all([whenOdysseyLoaded, proxy('israel-iran-conflict-globe')]).then(() =>
   document.getElementsByTagName('head')[0].appendChild(viewPortTag);
 
   if (appMountEl) {
-    new App({
-      target: appMountEl,
-      props: { scrollyData }
-    });
+    mount(App, {
+            target: appMountEl,
+            props: { scrollyData }
+          });
   }
 });
 

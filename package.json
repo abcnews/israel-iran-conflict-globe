@@ -36,7 +36,7 @@
   "dependencies": {
     "@abcnews/alternating-case-to-object": "^3.0.2",
     "@abcnews/dev-proxy": "github:abcnews/dev-proxy",
-    "@abcnews/svelte-scrollyteller": "^2.1.0",
+    "@abcnews/svelte-scrollyteller": "github:abcnews/svelte-scrollyteller#feature/future-news",
     "@mapbox/geojson-area": "^0.2.2",
     "@mapbox/geojson-rewind": "^0.5.2",
     "@turf/bbox": "^7.2.0",
@@ -63,7 +63,7 @@
     "jankdefer": "^1.0.2",
     "range-inclusive": "^1.0.2",
     "simplify-geojson": "^1.0.5",
-    "svelte": "^4.2.20",
+    "svelte": "^5.0.0",
     "svelte-previous": "^2.1.1",
     "topojson-client": "^3.1.0",
     "topojson-simplify": "^3.0.3"
