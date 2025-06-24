@@ -5,16 +5,33 @@
   import { center } from '@turf/center';
   import { bbox } from '@turf/bbox';
   import { Tween } from 'svelte/motion';
-  import { drawLabels, drawPath } from './draw';
+  import { drawPath, drawMark, drawLabel } from './draw';
 
   // Internal imports
   import worldComplex from './world-50m-simplified-0.4.topo.json';
   import type { FeatureCollection } from 'geojson';
   import type { Mark } from '../App/markers';
   import { expoInOut } from 'svelte/easing';
-  import { rad2deg } from './utils';
+  import { applyOpacity, rad2deg } from './utils';
+
+  let prefersRedudcedMotion = $state(document.body.classList.contains('is-reduced-motion'));
+
+  // Observe changes to body class
+  const monitorReducedMotionClass: Action = node => {
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        console.log('mutation :>> ', mutation);
+        prefersRedudcedMotion = mutation.target.classList.contains('is-reduced-motion');
+      });
+    });
+
+    observer.observe(node, { attributeFilter: ['class'] });
+  };
 
   const topoObjKey = 'world-50m.geo';
+
+  import { ALL_LABELS } from '../App/markers';
+  import type { Action } from 'svelte/action';
 
   interface Props {
     background?: string;
@@ -30,7 +47,7 @@
     duration = 1250,
     shouldRotate = false,
     view,
-    marks,
+    marks = [],
     highlights = []
   }: Props = $props();
 
@@ -79,15 +96,21 @@
   const countries = worldComplex.objects[topoObjKey].geometries.map(country => {
     const geojson = topojson.feature(worldComplex, country);
     geojson.bbox = bbox(geojson);
-    return { id: country.properties.iso_a2, geojson, opacity: new Tween(0, { duration }) };
+    return { id: country.properties.iso_a2, geojson, opacity: new Tween(0, { duration: duration, easing: expoInOut }) };
+  });
+
+  const labels = Object.values(ALL_LABELS).map(label => {
+    return { label, opacity: new Tween(0, { duration, easing: expoInOut }) };
   });
 
   $effect(() => {
+    console.log('update projection fitSize');
     projection.fitSize([width, height], globe);
   }); // TODO: this should maybe not be needed, but it is??
 
   // Set the clip extent of the projection to avoid drawing elements outside the viewport.
   $effect(() => {
+    console.log('update projecction clipExtent');
     projection.clipExtent([
       [0, 0],
       [width, height]
@@ -119,32 +142,29 @@
       }
     }
     // Update the tweened values
-    scaleTween.set(nextScale);
-    rotationTween.set([lambda, phi]);
+    scaleTween.target = nextScale;
+    rotationTween.target = [lambda, phi];
   });
 
   $effect(() => {
-    console.log('scale, rotate');
-    // Set the rotation and scale to the current tweened value
-    projection.scale(scaleTween.current);
-    projection.rotate(rotationTween.current);
-    draw();
-  });
-
-  $effect(() => {
-    // Update the location tweens for each country
-    countries.forEach(country => {
-      country.opacity.set(highlights.includes(country.id) ? 1 : 0);
+    countries.forEach(({ id, opacity }) => {
+      opacity.target = highlights.includes(id) ? 1 : 0;
     });
-
-    draw();
   });
 
-  /**
-   * Draw a frame to the canvas
-   */
-  function draw() {
+  $effect(() => {
+    labels.forEach(label => {
+      label.opacity.target = marks.includes(label.label) ? 1 : 0;
+    });
+  });
+
+  // Draw
+  $effect(() => {
     if (!context || !path) return;
+
+    // Update the projection with current scale and rotation values
+    projection.scale(prefersRedudcedMotion ? scaleTween.target : scaleTween.current);
+    projection.rotate(prefersRedudcedMotion ? rotationTween.target : rotationTween.current);
 
     context.clearRect(0, 0, width, height);
 
@@ -154,33 +174,11 @@
     drawPath(context, path, { strokeStyle: LAND_STROKE_COLOUR, lineWidth: 1.1 }, borders);
 
     countries
-      .filter(c => c.opacity.current > 0)
-      .forEach(({ id, geojson, opacity }) => {
-        drawPath(
-          context,
-          path,
-          { fillStyle: `${HIGHLIGHT_COLOR}${Math.round(opacity.current * 255).toString(16)}` },
-          geojson
-        );
+      .filter(({ opacity }) => opacity.current > 0)
+      .forEach(({ geojson, opacity }) => {
+        const fillStyle = applyOpacity(HIGHLIGHT_COLOR, prefersRedudcedMotion ? opacity.target : opacity.current);
+        drawPath(context, path, { fillStyle }, geojson);
       });
-
-    // Draw marks
-    marks?.forEach(mark => {
-      if (mark.markVariant === 'none') return;
-      const position = projection(mark.center);
-      if (context && position) {
-        const [x, y] = position;
-        // Draw dot
-
-        context.beginPath();
-        context.fillStyle = '#AF3838';
-        context.strokeStyle = '#fff';
-        context.lineWidth = 2;
-        context.arc(x, y, 4, 0, Math.PI * 2);
-        context.fill();
-        context.stroke();
-      }
-    });
 
     // Tidy up the world a little
     // Draw a thicker outline around the globe to hide any circle edges
@@ -190,30 +188,18 @@
     drawPath(context, path, { strokeStyle: GLOBE_OUTLINE_COLOR, lineWidth: 1.7 }, globe);
     projection.scale(projection.scale() + 5);
 
-    // Draw any labels
-    if (marks)
-      drawLabels(
-        context,
-        projection,
-        marks.filter(d => d.label)
-      );
-  }
-
-  // // Scales and Easing
-  // const speedScale = scaleLinear().domain([0, 1]).range([0, ROTATION_TOP_SPEED]);
-  // speedScale.clamp(true);
-  // const easeScale = scaleLinear().domain([0, SPIN_UP_TIME]).range([0, 1]);
-  // easeScale.clamp(true);
-
-  // const startSpin = () => {
-  //   let t = Date.now() - t0;
-  //   if (isTweening || !shouldRotate) return;
-  //   const speed = speedScale(easeExpInOut(easeScale(t)));
-  //   projection.rotate([rotationWhenStarted[0] + speed * t, rotationWhenStarted[1]]);
-  //   draw(t);
-  //   requestAnimationFrame(startSpin);
-  // };
+    // Draw marks
+    labels.forEach(({ label, opacity }) => {
+      const position = projection(label.center);
+      if (context && position) {
+        drawMark(context, position, label.markVariant, prefersRedudcedMotion ? opacity.target : opacity.current);
+        drawLabel(context, projection, label, prefersRedudcedMotion ? opacity.target : opacity.current);
+      }
+    });
+  });
 </script>
+
+<svelte:body use:monitorReducedMotionClass />
 
 <div class="root" bind:clientWidth={width} bind:clientHeight={height}>
   <canvas {width} {height} bind:this={canvas}> </canvas>
