@@ -1,8 +1,10 @@
+export type LabelVariant = 'city' | 'country' | 'sea';
+export type MarkVariant = 'none' | 'dot' | 'strike';
 export type Mark = {
   center: [number, number];
   label: string;
-  labelVariant: 'city' | 'country' | 'sea';
-  markVariant: 'none' | 'dot' | 'strike';
+  labelVariant: LabelVariant;
+  markVariant: MarkVariant;
 };
 
 type BBox = [[number, number], [number, number], [number, number], [number, number]];
@@ -312,3 +314,5 @@ export const markers: Marker[] = [
     marks: [COUNTRY_LABELS.us, CITY_LABELS.washington]
   }
 ];
+
+export const ALL_LABELS = { ...COUNTRY_LABELS, ...CITY_LABELS };
