@@ -12,7 +12,7 @@
   import type { FeatureCollection } from 'geojson';
   import type { Mark } from '../App/markers';
   import { expoInOut } from 'svelte/easing';
-  import { applyOpacity, rad2deg } from './utils';
+  import { applyOpacity, rad2deg, splitMultiPolygon } from './utils';
 
   let prefersRedudcedMotion = $state(document.body.classList.contains('is-reduced-motion'));
 
@@ -95,9 +95,21 @@
   // Get all the countries
   const countries = worldComplex.objects[topoObjKey].geometries.map(country => {
     const geojson = topojson.feature(worldComplex, country);
+
     geojson.bbox = bbox(geojson);
     return { id: country.properties.iso_a2, geojson, opacity: new Tween(0, { duration: duration, easing: expoInOut }) };
   });
+
+  const palestine = countries.find(country => country.geojson.properties.iso_a2 === 'PS');
+  if (palestine) {
+    splitMultiPolygon(palestine.geojson).forEach((region, idx) =>
+      countries.push({
+        id: `${region.properties?.iso_a2}_${idx}`,
+        geojson: region,
+        opacity: new Tween(0, { duration, easing: expoInOut })
+      })
+    );
+  }
 
   const labels = Object.values(ALL_LABELS).map(label => {
     return { label, opacity: new Tween(0, { duration, easing: expoInOut }) };

@@ -218,14 +218,14 @@ export const markers: Marker[] = [
   // << add highlight and label to Gaza Strip  >>
   {
     bbox: BBOX.israelPalestine,
-    highlights: ['GZ'],
+    highlights: ['PS_1'],
     marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.gaza]
   },
 
   // << add highlight and label to West Bank >>
   {
     bbox: BBOX.israelPalestine,
-    highlights: ['GZ', 'WB'],
+    highlights: ['PS_1', 'PS_0'],
     marks: [COUNTRY_LABELS.israel, CITY_LABELS.telAviv, COUNTRY_LABELS.gaza, COUNTRY_LABELS.westBank]
   },
 
