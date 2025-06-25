@@ -1,12 +1,12 @@
 <script lang="ts">
   import Scrollyteller from '@abcnews/svelte-scrollyteller';
-  import rewind from '@mapbox/geojson-rewind';
 
   // Components
   import Globe from '../Globe/Globe.svelte';
 
-  import { markers, type Mark } from './markers';
+  import { BBOX, markers, type BBox, type Mark } from './markers';
   import type { FeatureCollection } from 'geojson';
+  import { createViewPolygon } from '../Globe/utils';
 
   export let scrollyData;
 
@@ -14,30 +14,17 @@
 
   let duration = 1500;
   let shouldRotate = false;
-  let view: FeatureCollection;
+  let view: FeatureCollection = createViewPolygon(markers[0].bbox);
   let marks: Mark[];
   let highlights: string[];
 
   const markerChangeHandler = marker => {
-    let bbox: [[number, number], [number, number], [number, number], [number, number]];
-    ({ bbox, highlights, marks } = markers[marker.idx || 0]);
+    const data = markers[marker.idx || 0];
+    if (!data) return;
+    let bbox: BBox;
+    ({ bbox, highlights, marks } = data);
 
-    view = rewind(
-      {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              coordinates: [[...bbox, bbox[0]]],
-              type: 'Polygon'
-            }
-          }
-        ]
-      },
-      true
-    );
+    view = createViewPolygon(bbox);
 
     duration = marker.duration || DEFAULT_DURATION;
     shouldRotate = marker.rotate ? true : false;

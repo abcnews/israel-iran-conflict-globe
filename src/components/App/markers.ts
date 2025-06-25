@@ -7,7 +7,7 @@ export type Mark = {
   markVariant: MarkVariant;
 };
 
-type BBox = [[number, number], [number, number], [number, number], [number, number]];
+export type BBox = [number, number][];
 
 type Marker = {
   bbox: BBox;
@@ -16,12 +16,36 @@ type Marker = {
 };
 
 // Bounding boxes of each view. Re-used multiple times across the set of markers
-const BBOX = {
+export const BBOX = {
+  australia: [
+    [134.24499605549966, -9.025441090234793],
+    [125.52996151877045, -11.103385393068422],
+    [115.98251871895138, -17.296754354572897],
+    [110.92377483055009, -23.224663671982867],
+    [110.14692452916199, -28.425893135322433],
+    [108.18117594760355, -35.570726702851275],
+    [111.86220404846375, -38.1021836751309],
+    [119.19966755544579, -40.797327774237054],
+    [127.81234388907751, -41.601532716000435],
+    [135.4884118412681, -43.12689186163408],
+    [146.97103360767392, -46.203725319347335],
+    [153.70608142908105, -45.00884681320386],
+    [155.44626274886502, -36.02138456555684],
+    [158.5616263457394, -27.392453769040877],
+    [153.13605258187306, -19.357379614480237],
+    [148.32487865619487, -12.576817276254957],
+    [144.16012068777735, -8.756097743842403],
+    [134.24499605549966, -9.025441090234793]
+  ] as BBox,
   middleEast: [
-    [26.950210183782474, 43.34444339352575],
-    [26.950210183782474, 20.435068684928638],
-    [71.6046864673898, 20.435068684928638],
-    [71.6046864673898, 43.34444339352575]
+    [45.686034857507906, 41.01421340912228],
+    [34.258618579117126, 35.26272280807754],
+    [32.755957306154414, 30.16013913519967],
+    [35.56509401507242, 27.977488212814762],
+    [63.3259729213095, 23.881676214164045],
+    [64.76065757954404, 28.867069562815075],
+    [63.128477260879606, 37.54239753905014],
+    [45.686034857507906, 41.01421340912228]
   ] as BBox,
   middleEastWider: [
     [27.25120971638492, 40.47022089200098],
@@ -30,10 +54,19 @@ const BBOX = {
     [68.64247427157355, 40.47022089200098]
   ] as BBox,
   israelPalestine: [
-    [31.389178943158527, 36.21646691830993],
-    [31.389178943158527, 28.840682701979517],
-    [39.633082257055065, 28.840682701979517],
-    [39.633082257055065, 36.21646691830993]
+    [33.832069633571564, 31.280598486180153],
+    [34.89856440275247, 28.850141436765156],
+    [36.18723412716167, 31.90173767750484],
+    [35.99352779143837, 33.56542742972778],
+    [34.833829038647195, 33.42522851996587],
+    [33.832069633571564, 31.280598486180153]
+  ] as BBox,
+  israelPalestineLebanon: [
+    [34.98433330746869, 28.973183596643224],
+    [37.60019878450015, 34.71277651932391],
+    [36.26610936611277, 36.95976496507677],
+    [33.70885639410537, 31.233065028894217],
+    [34.98433330746869, 28.973183596643224]
   ] as BBox,
   syria: [
     [31.689737918144147, 38.56989682734587],
@@ -69,10 +102,14 @@ const BBOX = {
   ] as BBox,
 
   us: [
-    [-135.4451721160103, 52.128284229162205],
-    [-135.4451721160103, 17.69174400440663],
-    [-57.66704350654733, 17.69174400440663],
-    [-57.66704350654733, 52.128284229162205]
+    [-174.41328109121625, 66.55634538317918],
+    [-152.75690345553275, 54.21843870257504],
+    [-117.24588727363395, 25.988852295564882],
+    [-73.41693562504393, 21.614580264381743],
+    [-45.138504161455955, 11.874778703435453],
+    [-29.183482148696953, 24.849227210346314],
+    [-66.3961205274009, 47.51024734941899],
+    [-174.41328109121625, 66.55634538317918]
   ] as BBox
 };
 
@@ -120,13 +157,13 @@ const COUNTRY_LABELS = {
     markVariant: 'none'
   } as Mark,
   yemen: {
-    center: [49.65370221145258, 20.860719553633174],
+    center: [47.78688342637267, 16.132628866010236],
     label: 'Yemen',
     labelVariant: 'country',
     markVariant: 'none'
   } as Mark,
   russia: {
-    center: [76.27440698248733, 63.46271799275593],
+    center: [96.72551617665954, 61.39503934954294],
     label: 'Russia',
     labelVariant: 'country',
     markVariant: 'none'
@@ -159,7 +196,7 @@ const CITY_LABELS = {
     markVariant: 'dot'
   } as Mark,
   beirut: {
-    center: [35.48469163934104, 33.900918069625234],
+    center: [35.53047699408555, 33.870145155827814],
     label: 'Beirut',
     labelVariant: 'city',
     markVariant: 'dot'
@@ -190,7 +227,7 @@ const CITY_LABELS = {
   } as Mark,
   washington: {
     center: [-77.07148562066993, 38.88601799872134],
-    label: 'Washington, DC',
+    label: 'Washington',
     labelVariant: 'city',
     markVariant: 'dot'
   } as Mark
@@ -205,7 +242,7 @@ export const markers: Marker[] = [
   {
     bbox: BBOX.middleEast,
     highlights: ['IL', 'IR'],
-    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.iran, CITY_LABELS.telAviv, CITY_LABELS.tehran]
+    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.iran]
   },
 
   // << map changes to centre on Israel and zoom in closer (if higher zoom level looks okay?); Israel remains highlighted and labelled; remove highlight and label from Iran (won’t be visible anyway) >>
@@ -218,7 +255,7 @@ export const markers: Marker[] = [
   // << add highlight and label to Gaza Strip  >>
   {
     bbox: BBOX.israelPalestine,
-    highlights: ['PS_1'],
+    highlights: ['PS_0'],
     marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.gaza]
   },
 
@@ -231,7 +268,7 @@ export const markers: Marker[] = [
 
   // << zoom out and centre map on Lebanon; keep Israel within the frame; add highlight and label to Lebanon; add marker for Beirut; remove labels from Gaza Strip and West Bank >>
   {
-    bbox: BBOX.israelPalestine,
+    bbox: BBOX.israelPalestineLebanon,
     highlights: ['LB'],
     marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.lebanon, CITY_LABELS.beirut]
   },
@@ -240,7 +277,7 @@ export const markers: Marker[] = [
   {
     bbox: BBOX.syria,
     highlights: ['SY'],
-    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.lebanon, COUNTRY_LABELS.syria, CITY_LABELS.damascus]
+    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.syria, CITY_LABELS.damascus]
   },
 
   // << stay at same zoom level but move Yemen to centre of frame; add label and highlight to Yemen; add marker for Sanaa; include label for Saudi Arabia if possible >>
@@ -253,22 +290,15 @@ export const markers: Marker[] = [
   // << zoom out a bit and move back to centreing on Israel and Iran; highlights and labels on Israel, Iran, Syria, Lebanon, Yemen; Saudi Arabia also labelled if it fits >>
   {
     bbox: BBOX.middleEastWider,
-    highlights: ['IL', 'IR', 'SY', 'LB', 'YE'],
-    marks: [
-      COUNTRY_LABELS.israel,
-      COUNTRY_LABELS.iran,
-      COUNTRY_LABELS.syria,
-      COUNTRY_LABELS.lebanon,
-      COUNTRY_LABELS.yemen,
-      COUNTRY_LABELS.saudiArabia
-    ]
+    highlights: ['IL', 'IR'],
+    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.iran, COUNTRY_LABELS.yemen, COUNTRY_LABELS.saudiArabia]
   },
 
   // << zoom into Iran and remove all other labels and highlights >>
   {
     bbox: BBOX.iran,
     highlights: ['IR'],
-    marks: [COUNTRY_LABELS.iran, CITY_LABELS.tehran]
+    marks: [CITY_LABELS.tehran]
   },
 
   //

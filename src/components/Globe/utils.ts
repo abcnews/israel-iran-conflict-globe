@@ -1,4 +1,5 @@
-import type { Feature, GeoJsonObject, MultiPolygon } from 'geojson';
+import type { Feature } from 'geojson';
+import rewind from '@mapbox/geojson-rewind';
 
 export const rad2deg = (deg: number) => (deg * 180) / Math.PI;
 export const applyOpacity = (hex: string, opacity: number) => {
@@ -23,4 +24,23 @@ export const splitMultiPolygon = (multiPolygonFeature: Feature): Feature[] => {
     },
     properties: { ...multiPolygonFeature.properties, _part: index }
   }));
+};
+
+export const createViewPolygon = (coordinates: [number, number][]) => {
+  return rewind(
+    {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            coordinates: [[...coordinates, coordinates[0]]],
+            type: 'Polygon'
+          }
+        }
+      ]
+    },
+    true
+  );
 };
