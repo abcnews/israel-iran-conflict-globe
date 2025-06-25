@@ -180,6 +180,9 @@
     projection.scale(prefersRedudcedMotion ? scaleTween.target : scaleTween.current);
     projection.rotate(prefersRedudcedMotion ? rotationTween.target : rotationTween.current);
 
+    // TODO: cross fade in low motion mode
+    const dataURL = canvas?.toDataURL();
+
     context.clearRect(0, 0, width, height);
 
     // Draw the base map

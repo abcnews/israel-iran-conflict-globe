@@ -2,6 +2,10 @@ import { geoDistance, geoPath, type GeoPermissibleObjects, type GeoProjection } 
 import type { Mark, MarkVariant } from '../App/markers';
 import { applyOpacity } from './utils';
 
+const strikeIconPath = new Path2D(
+  'm5.36888.79542 1.7 6.36-5.72-1.98 4.54 4.1-5.540003 1.07998 5.320003 1.32-2.88 5.1 4.74-2.84.14 5.62 2.02-5.18 2.66002 3.98-.22-4.84 4.56 1.86-3.16-4.34 5.5-3.15998-6.22.32 1.8-3.8-3.42 2.5.4-5.5-2.40002 4.58z'
+);
+
 export const drawMark = (
   context: CanvasRenderingContext2D,
   position: [number, number],
@@ -20,6 +24,17 @@ export const drawMark = (
       context.arc(x, y, 4 * dpr, 0, Math.PI * 2);
       context.fill();
       context.stroke();
+      return;
+    case 'strike':
+      context.fillStyle = applyOpacity('#FF571A', opacity);
+      context.strokeStyle = applyOpacity('#ffffff', opacity * 0.75);
+      context.lineWidth = 1.1;
+      context.translate(x - 11 * dpr, y - 11 * dpr);
+      context.scale(dpr, dpr);
+      context.fill(strikeIconPath);
+      context.stroke(strikeIconPath);
+      context.resetTransform();
+      return;
   }
 };
 

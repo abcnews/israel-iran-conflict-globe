@@ -86,7 +86,14 @@ export const BBOX = {
     [67.8696083358964, 22.196126423716166],
     [67.8696083358964, 41.3141077954528]
   ] as BBox,
-
+  iranStrikes: [
+    [51.19958265974299, 36.57900400736753],
+    [46.028221972339, 36.436344379995646],
+    [46.51536366407612, 29.2809104009594],
+    [58.71016561336367, 28.595668149128798],
+    [57.353657156888346, 36.38220907559513],
+    [51.19958265974299, 36.57900400736753]
+  ] as BBox,
   russia: [
     [2.315274354114962, 76.68952742364081],
     [2.315274354114962, 23.734305017653995],
@@ -183,12 +190,49 @@ const COUNTRY_LABELS = {
 };
 
 const CITY_LABELS = {
+  fordow: {
+    center: [50.9981, 34.8845],
+    label: 'Fordow',
+    labelVariant: 'city',
+    markVariant: 'strike'
+  } as Mark,
+  natanz: {
+    center: [51.716667, 33.716667],
+    label: 'Natanz',
+    labelVariant: 'city',
+    markVariant: 'strike'
+  } as Mark,
+  isfahan: {
+    center: [51.826131, 32.573981],
+    label: 'Isfahan',
+    labelVariant: 'city',
+    markVariant: 'strike'
+  } as Mark,
   telAviv: {
     center: [34.78577100552596, 32.091771978557844],
     label: 'Tel Aviv',
     labelVariant: 'city',
     markVariant: 'dot'
   } as Mark,
+  telAvivStrike: {
+    center: [34.78577100552596, 32.091771978557844],
+    label: 'Tel Aviv',
+    labelVariant: 'city',
+    markVariant: 'strike'
+  } as Mark,
+  haifa: {
+    center: [34.999167, 32.819167],
+    label: 'Haifa',
+    labelVariant: 'city',
+    markVariant: 'strike'
+  } as Mark,
+  beerSheva: {
+    center: [34.786667, 31.252222],
+    label: "Be'er Sheva",
+    labelVariant: 'city',
+    markVariant: 'strike'
+  } as Mark,
+
   tehran: {
     center: [51.36813962138109, 35.70238478913372],
     label: 'Tehran',
@@ -307,16 +351,16 @@ export const markers: Marker[] = [
 
   // << add markers that show locations of key strike locations — exact locations TBC by Matt >>
   {
-    bbox: BBOX.iran,
+    bbox: BBOX.iranStrikes,
     highlights: ['IR'],
-    marks: [COUNTRY_LABELS.iran, CITY_LABELS.tehran]
+    marks: [CITY_LABELS.tehran, CITY_LABELS.fordow, CITY_LABELS.natanz, CITY_LABELS.isfahan]
   },
 
   // << shift focus of map across to Israel; add markers that show locations of key strike locations — exact locations TBC by Matt >>
   {
     bbox: BBOX.israelPalestine,
     highlights: ['IL'],
-    marks: [COUNTRY_LABELS.israel, CITY_LABELS.telAviv]
+    marks: [CITY_LABELS.telAvivStrike, CITY_LABELS.beerSheva, CITY_LABELS.haifa]
   },
 
   //
