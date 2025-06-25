@@ -33,7 +33,7 @@
 
 <Scrollyteller panels={scrollyData.panels} onMarker={markerChangeHandler} layout={{ resizeInteractive: false }}>
   <div class="graphic">
-    <Globe {view} {marks} {highlights} {duration} {shouldRotate} background="#213945" />
+    <Globe {view} {marks} {highlights} {duration} {shouldRotate} background="#ffffff" />
   </div>
 </Scrollyteller>
 
