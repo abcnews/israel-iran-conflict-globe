@@ -12,13 +12,8 @@
 
   const DEFAULT_DURATION = 1500;
 
-  let globeScale = 100;
-  let countryCodeFocus = 'GB';
-  let year: number = 0;
   let duration = 1500;
   let shouldRotate = false;
-  let isLegendVisible = false;
-  let isLegendObscuringGlobe = false;
   let view: FeatureCollection;
   let marks: Mark[];
   let highlights: string[];
@@ -44,18 +39,14 @@
       true
     );
 
-    countryCodeFocus = marker.focus || 'GB';
-    year = typeof marker.year === 'undefined' ? 0 : marker.year;
     duration = marker.duration || DEFAULT_DURATION;
     shouldRotate = marker.rotate ? true : false;
-    isLegendVisible = year !== 0;
-    isLegendObscuringGlobe = isLegendVisible && globeScale >= 150;
   };
 </script>
 
 <Scrollyteller panels={scrollyData.panels} onMarker={markerChangeHandler} layout={{ resizeInteractive: false }}>
   <div class="graphic">
-    <Globe {view} {marks} {highlights} {duration} {shouldRotate} />
+    <Globe {view} {marks} {highlights} {duration} {shouldRotate} background="#213945" />
   </div>
 </Scrollyteller>
 

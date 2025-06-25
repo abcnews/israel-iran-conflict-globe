@@ -20,7 +20,6 @@
   const monitorReducedMotionClass: Action = node => {
     const observer = new MutationObserver(mutations => {
       mutations.forEach(mutation => {
-        console.log('mutation :>> ', mutation);
         prefersRedudcedMotion = mutation.target.classList.contains('is-reduced-motion');
       });
     });
@@ -32,6 +31,8 @@
 
   import { ALL_LABELS } from '../App/markers';
   import type { Action } from 'svelte/action';
+  import { devicePixelRatio } from 'svelte/reactivity/window';
+  import { onMount } from 'svelte';
 
   interface Props {
     background?: string;
@@ -56,11 +57,14 @@
 
   let canvas: HTMLCanvasElement | undefined = $state();
   let context: CanvasRenderingContext2D | undefined | null = $derived(canvas && canvas.getContext('2d'));
-  let width: number = $state(0);
-  let height: number = $state(0);
+  let clientWidth: number = $state(0);
+  let clientHeight: number = $state(0);
   let path: ReturnType<typeof geoPath> | undefined | null = $derived(
     projection && context && geoPath(projection, context)
   );
+
+  let width = $derived(clientWidth * (devicePixelRatio.current || 1));
+  let height = $derived(clientHeight * (devicePixelRatio.current || 1));
 
   // Pre-load fonts
   $effect(() => {
@@ -86,11 +90,9 @@
 
   // Merge all the geometries into a single 'land' geometry
   let land = topojson.merge(worldComplex, worldComplex.objects[topoObjKey].geometries);
-  const allLand = land;
 
   // Get a MultiLineString that contains only internal boundaries.
   let borders = topojson.mesh(worldComplex, worldComplex.objects[topoObjKey], (a, b) => a !== b);
-  const allBorders = borders;
 
   // Get all the countries
   const countries = worldComplex.objects[topoObjKey].geometries.map(country => {
@@ -115,14 +117,13 @@
     return { label, opacity: new Tween(0, { duration, easing: expoInOut }) };
   });
 
-  $effect(() => {
-    console.log('update projection fitSize');
+  onMount(() => {
     projection.fitSize([width, height], globe);
-  }); // TODO: this should maybe not be needed, but it is??
+    scaleTween.target = projection.scale();
+  });
 
   // Set the clip extent of the projection to avoid drawing elements outside the viewport.
   $effect(() => {
-    console.log('update projecction clipExtent');
     projection.clipExtent([
       [0, 0],
       [width, height]
@@ -204,21 +205,36 @@
     labels.forEach(({ label, opacity }) => {
       const position = projection(label.center);
       if (context && position) {
-        drawMark(context, position, label.markVariant, prefersRedudcedMotion ? opacity.target : opacity.current);
-        drawLabel(context, projection, label, prefersRedudcedMotion ? opacity.target : opacity.current);
+        drawMark(
+          context,
+          position,
+          label.markVariant,
+          prefersRedudcedMotion ? opacity.target : opacity.current,
+          devicePixelRatio.current
+        );
+        drawLabel(
+          context,
+          projection,
+          label,
+          prefersRedudcedMotion ? opacity.target : opacity.current,
+          devicePixelRatio.current
+        );
       }
     });
   });
 </script>
 
 <svelte:body use:monitorReducedMotionClass />
-
-<div class="root" bind:clientWidth={width} bind:clientHeight={height}>
+<div class="root" bind:clientWidth bind:clientHeight>
   <canvas {width} {height} bind:this={canvas}> </canvas>
 </div>
 
 <style lang="scss">
   div.root {
+    width: 100%;
+    height: 100%;
+  }
+  canvas {
     width: 100%;
     height: 100%;
   }

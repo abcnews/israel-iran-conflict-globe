@@ -6,7 +6,8 @@ export const drawMark = (
   context: CanvasRenderingContext2D,
   position: [number, number],
   variant: MarkVariant,
-  opacity: number = 0
+  opacity: number = 0,
+  dpr: number = 1
 ) => {
   if (variant === 'none' || opacity === 0) return;
   const [x, y] = position;
@@ -15,8 +16,8 @@ export const drawMark = (
     case 'dot':
       context.fillStyle = applyOpacity('#AF3838', opacity);
       context.strokeStyle = applyOpacity('#ffffff', opacity);
-      context.lineWidth = 2;
-      context.arc(x, y, 4, 0, Math.PI * 2);
+      context.lineWidth = 2 * dpr;
+      context.arc(x, y, 4 * dpr, 0, Math.PI * 2);
       context.fill();
       context.stroke();
   }
@@ -27,7 +28,8 @@ export const drawLabel = (
   context: CanvasRenderingContext2D,
   projection: GeoProjection,
   label: Mark,
-  opacity: number = 0
+  opacity: number = 0,
+  dpr: number = 1
 ) => {
   const labelLevel1 = (label: Mark) => {
     const position = projection(label.center);
@@ -35,7 +37,7 @@ export const drawLabel = (
     // Quit early if the label center isn't valid
     if (!position) return;
 
-    const fontSize = 15;
+    const fontSize = 15 * dpr;
 
     // Set this before measuring
     context.font = `400 ${fontSize}px ABCSans`;
@@ -45,8 +47,9 @@ export const drawLabel = (
     context.textBaseline = 'middle';
     context.textAlign = 'center';
     context.fillStyle = applyOpacity('#000000', opacity);
-    context.strokeStyle = applyOpacity('#ffffff', opacity);
-    context.lineWidth = 3;
+    context.strokeStyle = applyOpacity('#ffffff', opacity * 0.75);
+    context.miterLimit = 3;
+    context.lineWidth = 3 * dpr;
     context.strokeText(label.label.toUpperCase(), x, y);
     context.fillText(label.label.toUpperCase(), x, y);
   };
@@ -56,7 +59,7 @@ export const drawLabel = (
     // Quit early if the label center isn't valid
     if (!position) return;
 
-    const fontSize = 13;
+    const fontSize = 13 * dpr;
 
     // Set this before measuring
     context.font = `700 ${fontSize}px ABCSans`;
@@ -66,8 +69,8 @@ export const drawLabel = (
     context.textBaseline = 'middle';
     context.textAlign = 'center';
     context.fillStyle = applyOpacity('#000000', opacity);
-    context.strokeStyle = applyOpacity('#ffffff', opacity);
-    context.lineWidth = 3;
+    context.strokeStyle = applyOpacity('#ffffff', opacity * 0.75);
+    context.lineWidth = 3 * dpr;
     context.strokeText(label.label, x + labelTextWidth / 2 + 15, y);
     context.fillText(label.label, x + labelTextWidth / 2 + 15, y);
   };
@@ -77,9 +80,9 @@ export const drawLabel = (
     // Quit early if the label center isn't valid
     if (!position) return;
 
-    const fontSize = 14;
-    const labelTextOffset = 10;
-    const labelTextPadding = 10;
+    const fontSize = 14 * dpr;
+    const labelTextOffset = 10 * dpr;
+    const labelTextPadding = 10 * dpr;
 
     // Set this before measuring
     context.font = `700 ${fontSize}px ABCSans`;
