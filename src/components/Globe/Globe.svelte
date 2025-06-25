@@ -81,10 +81,11 @@
   const rotationTween = new Tween<[number, number]>([0, 0], { duration, easing: expoInOut });
 
   const OCEAN_COLOUR = '#173543';
-  const LAND_COLOUR = '#333639';
-  const LAND_STROKE_COLOUR = '#585858';
+  const LAND_COLOUR = '#5A5A5A';
+  const LAND_STROKE_COLOUR = '#ACACAC';
   const GLOBE_OUTLINE_COLOR = '#CCCCCC';
   const HIGHLIGHT_COLOR = '#C3C3C3';
+  const HIGHLIGHT_STROKE_COLOR = '#646464';
   const ROTATION_TOP_SPEED: number = 0.025;
   const SPIN_UP_TIME = 3000;
 
@@ -183,14 +184,18 @@
 
     // Draw the base map
     drawPath(context, path, { fillStyle: OCEAN_COLOUR }, globe);
-    drawPath(context, path, { strokeStyle: LAND_STROKE_COLOUR, lineWidth: 1.1, fillStyle: LAND_COLOUR }, land);
-    drawPath(context, path, { strokeStyle: LAND_STROKE_COLOUR, lineWidth: 1.1 }, borders);
+    drawPath(context, path, { strokeStyle: LAND_STROKE_COLOUR, lineWidth: 2.1, fillStyle: LAND_COLOUR }, land);
+    drawPath(context, path, { strokeStyle: LAND_STROKE_COLOUR, lineWidth: 2.1 }, borders);
 
     countries
       .filter(({ opacity }) => opacity.current > 0)
       .forEach(({ geojson, opacity }) => {
         const fillStyle = applyOpacity(HIGHLIGHT_COLOR, prefersRedudcedMotion ? opacity.target : opacity.current);
-        drawPath(context, path, { fillStyle }, geojson);
+        const strokeStyle = applyOpacity(
+          HIGHLIGHT_STROKE_COLOR,
+          prefersRedudcedMotion ? opacity.target : opacity.current
+        );
+        drawPath(context, path, { fillStyle, strokeStyle, lineWidth: 2.1 }, geojson);
       });
 
     // Tidy up the world a little
