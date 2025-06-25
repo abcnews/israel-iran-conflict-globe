@@ -20,8 +20,8 @@ export const drawMark = (
     case 'dot':
       context.fillStyle = applyOpacity('#AF3838', opacity);
       context.strokeStyle = applyOpacity('#ffffff', opacity);
-      context.lineWidth = 2 * dpr;
-      context.arc(x, y, 4 * dpr, 0, Math.PI * 2);
+      context.lineWidth = 0.5 * dpr;
+      context.arc(x, y, 5 * dpr, 0, Math.PI * 2);
       context.fill();
       context.stroke();
       return;
@@ -52,7 +52,7 @@ export const drawLabel = (
     // Quit early if the label center isn't valid
     if (!position) return;
 
-    const fontSize = 15 * dpr;
+    const fontSize = 17 * dpr;
 
     // Set this before measuring
     context.font = `400 ${fontSize}px ABCSans`;
@@ -74,7 +74,7 @@ export const drawLabel = (
     // Quit early if the label center isn't valid
     if (!position) return;
 
-    const fontSize = 13 * dpr;
+    const fontSize = 15 * dpr;
 
     // Set this before measuring
     context.font = `700 ${fontSize}px ABCSans`;
@@ -86,8 +86,8 @@ export const drawLabel = (
     context.fillStyle = applyOpacity('#000000', opacity);
     context.strokeStyle = applyOpacity('#ffffff', opacity * 0.75);
     context.lineWidth = 3 * dpr;
-    context.strokeText(label.label, x + labelTextWidth / 2 + 15, y);
-    context.fillText(label.label, x + labelTextWidth / 2 + 15, y);
+    context.strokeText(label.label, x + labelTextWidth / 2 + 15 * dpr, y);
+    context.fillText(label.label, x + labelTextWidth / 2 + 15 * dpr, y);
   };
   const labelLevel3 = (label: Mark) => {
     const position = projection(label.center);
@@ -95,7 +95,7 @@ export const drawLabel = (
     // Quit early if the label center isn't valid
     if (!position) return;
 
-    const fontSize = 14 * dpr;
+    const fontSize = 16 * dpr;
     const labelTextOffset = 10 * dpr;
     const labelTextPadding = 10 * dpr;
 
