@@ -46,6 +46,9 @@ export const drawLabel = (
   opacity: number = 0,
   dpr: number = 1
 ) => {
+  const textColour = label.invertTextColour ? '#ffffff' : '#000000';
+  const outlineColour = label.invertTextColour ? '#000000' : '#ffffff';
+
   const labelLevel1 = (label: Mark) => {
     const position = projection(label.center);
 
@@ -61,8 +64,8 @@ export const drawLabel = (
 
     context.textBaseline = 'middle';
     context.textAlign = 'center';
-    context.fillStyle = applyOpacity('#000000', opacity);
-    context.strokeStyle = applyOpacity('#ffffff', opacity * 0.6);
+    context.fillStyle = applyOpacity(textColour, opacity);
+    context.strokeStyle = applyOpacity(outlineColour, opacity * 0.6);
     context.miterLimit = 3;
     context.lineWidth = 3 * dpr;
     context.strokeText(label.label.toUpperCase(), x, y);
@@ -83,8 +86,8 @@ export const drawLabel = (
 
     context.textBaseline = 'middle';
     context.textAlign = 'center';
-    context.fillStyle = applyOpacity('#000000', opacity);
-    context.strokeStyle = applyOpacity('#ffffff', opacity * 0.6);
+    context.fillStyle = applyOpacity(textColour, opacity);
+    context.strokeStyle = applyOpacity(outlineColour, opacity * 0.6);
     context.lineWidth = 3 * dpr;
     context.strokeText(label.label, x + labelTextWidth / 2 + 15 * dpr, y);
     context.fillText(label.label, x + labelTextWidth / 2 + 15 * dpr, y);
@@ -115,7 +118,7 @@ export const drawLabel = (
     context.fill();
 
     // Draw label
-    context.fillStyle = applyOpacity('#000000', opacity);
+    context.fillStyle = applyOpacity(textColour, opacity);
     context.textAlign = 'left';
     context.fillText(label.label, x + labelTextOffset + labelTextPadding, y + fontSize * 0.6);
   };

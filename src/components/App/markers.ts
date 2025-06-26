@@ -1,6 +1,3 @@
-import center from '@turf/center';
-import { bbox } from 'topojson-client';
-
 export type LabelVariant = 'city' | 'country' | 'sea';
 export type MarkVariant = 'none' | 'dot' | 'strike';
 export type Mark = {
@@ -8,6 +5,7 @@ export type Mark = {
   label: string;
   labelVariant: LabelVariant;
   markVariant: MarkVariant;
+  invertTextColour?: boolean;
 };
 
 export type BBox = [number, number][];
@@ -137,179 +135,228 @@ export const BBOX = {
   ] as BBox
 };
 
-const COUNTRY_LABELS = {
+const COUNTRY_LABELS: Record<string, Mark> = {
   israel: {
     center: [34.80789466864397, 31.77585694846691],
     label: 'Israel',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
+  israelInverted: {
+    center: [34.80789466864397, 31.77585694846691],
+    label: 'Israel',
+    labelVariant: 'country',
+    markVariant: 'none',
+    invertTextColour: true
+  },
   iran: {
     center: [53.99194615403175, 33.549571719171794],
     label: 'Iran',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
   iraq: {
     center: [43.43389647013157, 33.03696495172571],
     label: 'Iraq',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
+  iraqInverted: {
+    center: [43.43389647013157, 33.03696495172571],
+    label: 'Iraq',
+    labelVariant: 'country',
+    markVariant: 'none',
+    invertTextColour: true
+  },
   gaza: {
     center: [34.3840523250353, 31.449685955418218],
     label: 'Gaza',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
+  gazaInverted: {
+    center: [34.3840523250353, 31.449685955418218],
+    label: 'Gaza',
+    labelVariant: 'country',
+    markVariant: 'none',
+    invertTextColour: true
+  },
   westBank: {
     center: [35.27869658593059, 32.2544390687239],
     label: 'West Bank',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
   lebanon: {
     center: [36.08896444166055, 34.20363012231529],
     label: 'Lebanon',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
   syria: {
     center: [38.47117881843772, 34.84728007303045],
     label: 'Syria',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
+  syriaInverted: {
+    center: [38.47117881843772, 34.84728007303045],
+    label: 'Syria',
+    labelVariant: 'country',
+    markVariant: 'none',
+    invertTextColour: true
+  },
   saudiArabia: {
     center: [42.06433636388732, 25.239791126859572],
     label: 'Saudi Arabia',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
+  saudiArabiaInverted: {
+    center: [42.06433636388732, 25.239791126859572],
+    label: 'Saudi Arabia',
+    labelVariant: 'country',
+    markVariant: 'none',
+    invertTextColour: true
+  },
   yemen: {
     center: [47.78688342637267, 16.132628866010236],
     label: 'Yemen',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
+  yemenInverted: {
+    center: [47.78688342637267, 16.132628866010236],
+    label: 'Yemen',
+    labelVariant: 'country',
+    markVariant: 'none',
+    invertTextColour: true
+  },
   russia: {
     center: [96.72551617665954, 61.39503934954294],
     label: 'Russia',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
   china: {
     center: [97.1131265294776, 34.2934365447086],
     label: 'China',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark,
+  },
   us: {
     center: [-103.3295441731998, 38.78455886002209],
     label: 'United States',
     labelVariant: 'country',
     markVariant: 'none'
-  } as Mark
+  }
 };
 
-const CITY_LABELS = {
+const CITY_LABELS: Record<string, Mark> = {
   alUdeid: {
     center: [51.318611, 25.118611],
     label: 'Al Udeid air base',
     labelVariant: 'city',
     markVariant: 'strike'
-  } as Mark,
+  },
+  alUdeidInverted: {
+    center: [51.318611, 25.118611],
+    label: 'Al Udeid air base',
+    labelVariant: 'city',
+    markVariant: 'strike',
+    invertTextColour: true
+  },
   fordow: {
     center: [50.9981, 34.8845],
     label: 'Fordow',
     labelVariant: 'city',
     markVariant: 'strike'
-  } as Mark,
+  },
   natanz: {
     center: [51.716667, 33.716667],
     label: 'Natanz',
     labelVariant: 'city',
     markVariant: 'strike'
-  } as Mark,
+  },
   isfahan: {
     center: [51.826131, 32.573981],
     label: 'Isfahan',
     labelVariant: 'city',
     markVariant: 'strike'
-  } as Mark,
+  },
   telAviv: {
     center: [34.78577100552596, 32.091771978557844],
     label: 'Tel Aviv',
     labelVariant: 'city',
     markVariant: 'dot'
-  } as Mark,
+  },
   telAvivStrike: {
     center: [34.78577100552596, 32.091771978557844],
     label: 'Tel Aviv',
     labelVariant: 'city',
     markVariant: 'strike'
-  } as Mark,
+  },
   haifa: {
     center: [35.03154284866059, 32.82102587987124],
     label: 'Haifa',
     labelVariant: 'city',
     markVariant: 'strike'
-  } as Mark,
+  },
   beerSheva: {
     center: [34.786667, 31.252222],
     label: "Be'er Sheva",
     labelVariant: 'city',
     markVariant: 'strike'
-  } as Mark,
+  },
 
   tehran: {
     center: [51.36813962138109, 35.70238478913372],
     label: 'Tehran',
     labelVariant: 'city',
     markVariant: 'dot'
-  } as Mark,
+  },
   tehranStrike: {
     center: [51.36813962138109, 35.70238478913372],
     label: 'Tehran',
     labelVariant: 'city',
     markVariant: 'strike'
-  } as Mark,
+  },
   beirut: {
     center: [35.53047699408555, 33.870145155827814],
     label: 'Beirut',
     labelVariant: 'city',
     markVariant: 'dot'
-  } as Mark,
+  },
   damascus: {
     center: [36.30575054211161, 33.513047247553146],
     label: 'Damascus',
     labelVariant: 'city',
     markVariant: 'dot'
-  } as Mark,
+  },
   sanaa: {
     center: [44.19843305357395, 15.3416817915042],
     label: "S'anaa",
     labelVariant: 'city',
     markVariant: 'dot'
-  } as Mark,
+  },
   moscow: {
     center: [37.70195666033055, 55.75572025579794],
     label: 'Moscow',
     labelVariant: 'city',
     markVariant: 'dot'
-  } as Mark,
+  },
   beijing: {
     center: [116.38285828328128, 39.88046215316737],
     label: 'Beijing',
     labelVariant: 'city',
     markVariant: 'dot'
-  } as Mark,
+  },
   washington: {
     center: [-77.07148562066993, 38.88601799872134],
     label: 'Washington',
     labelVariant: 'city',
     markVariant: 'dot'
-  } as Mark
+  }
 };
 
 export const markers: Record<string | number, Marker> = {
@@ -322,12 +369,12 @@ export const markers: Record<string | number, Marker> = {
     bbox: BBOX.middleEast,
     highlights: ['IL', 'IR'],
     marks: [
-      COUNTRY_LABELS.israel,
+      COUNTRY_LABELS.israelInverted,
       COUNTRY_LABELS.iran,
-      COUNTRY_LABELS.saudiArabia,
-      COUNTRY_LABELS.yemen,
-      COUNTRY_LABELS.iraq,
-      COUNTRY_LABELS.syria
+      COUNTRY_LABELS.saudiArabiaInverted,
+      COUNTRY_LABELS.yemenInverted,
+      COUNTRY_LABELS.iraqInverted,
+      COUNTRY_LABELS.syriaInverted
     ]
   },
 
@@ -342,42 +389,47 @@ export const markers: Record<string | number, Marker> = {
   2: {
     bbox: BBOX.israelPalestine,
     highlights: ['PS_0'],
-    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.gaza]
+    marks: [COUNTRY_LABELS.israelInverted, COUNTRY_LABELS.gazaInverted]
   },
 
   // << add highlight and label to West Bank >>
   3: {
     bbox: BBOX.israelPalestine,
     highlights: ['PS_1', 'PS_0'],
-    marks: [COUNTRY_LABELS.israel, CITY_LABELS.telAviv, COUNTRY_LABELS.gaza, COUNTRY_LABELS.westBank]
+    marks: [COUNTRY_LABELS.israelInverted, CITY_LABELS.telAviv, COUNTRY_LABELS.gazaInverted, COUNTRY_LABELS.westBank]
   },
 
   // << zoom out and centre map on Lebanon; keep Israel within the frame; add highlight and label to Lebanon; add marker for Beirut; remove labels from Gaza Strip and West Bank >>
   4: {
     bbox: BBOX.israelPalestineLebanon,
     highlights: ['LB'],
-    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.lebanon, CITY_LABELS.beirut]
+    marks: [COUNTRY_LABELS.israelInverted, COUNTRY_LABELS.lebanon, CITY_LABELS.beirut]
   },
 
   // << zoom out and centre map on Syria; keep Israel within the frame; add highlight and label to Syria; add marker for Damascus; remove marker for Beirut; keep label for Syria (if spacing allows) >>
   5: {
     bbox: BBOX.syria,
     highlights: ['SY'],
-    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.syria, CITY_LABELS.damascus]
+    marks: [COUNTRY_LABELS.israelInverted, COUNTRY_LABELS.syria, CITY_LABELS.damascus]
   },
 
   // << stay at same zoom level but move Yemen to centre of frame; add label and highlight to Yemen; add marker for Sanaa; include label for Saudi Arabia if possible >>
   6: {
     bbox: BBOX.yemen,
     highlights: ['YE'],
-    marks: [COUNTRY_LABELS.yemen, COUNTRY_LABELS.saudiArabia, CITY_LABELS.sanaa]
+    marks: [COUNTRY_LABELS.yemen, COUNTRY_LABELS.saudiArabiaInverted, CITY_LABELS.sanaa]
   },
 
   // << zoom out a bit and move back to centreing on Israel and Iran; highlights and labels on Israel, Iran, Syria, Lebanon, Yemen; Saudi Arabia also labelled if it fits >>
   7: {
     bbox: BBOX.middleEastWider,
     highlights: ['IL', 'IR'],
-    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.iran, COUNTRY_LABELS.yemen, COUNTRY_LABELS.saudiArabia]
+    marks: [
+      COUNTRY_LABELS.israelInverted,
+      COUNTRY_LABELS.iran,
+      COUNTRY_LABELS.yemenInverted,
+      COUNTRY_LABELS.saudiArabiaInverted
+    ]
   },
 
   // << zoom into Iran and remove all other labels and highlights >>
@@ -438,7 +490,7 @@ export const markers: Record<string | number, Marker> = {
   15: {
     bbox: BBOX.qatar,
     highlights: ['QA'],
-    marks: [CITY_LABELS.alUdeid]
+    marks: [CITY_LABELS.alUdeidInverted]
   }
 };
 
