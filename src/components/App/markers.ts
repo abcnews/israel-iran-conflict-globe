@@ -127,6 +127,13 @@ export const BBOX = {
     [-29.183482148696953, 24.849227210346314],
     [-66.3961205274009, 47.51024734941899],
     [-174.41328109121625, 66.55634538317918]
+  ] as BBox,
+  qatar: [
+    [44.24332436604138, 29.266449525467365],
+    [44.24332436604138, 20.702654725014682],
+    [58.191405581507894, 20.702654725014682],
+    [58.191405581507894, 29.266449525467365],
+    [44.24332436604138, 29.266449525467365]
   ] as BBox
 };
 
@@ -429,7 +436,7 @@ export const markers: Record<string | number, Marker> = {
     marks: [CITY_LABELS.fordow, CITY_LABELS.isfahan, CITY_LABELS.natanz]
   },
   15: {
-    bbox: BBOX.iranStrikes,
+    bbox: BBOX.qatar,
     highlights: ['QA'],
     marks: [CITY_LABELS.alUdeid]
   }
