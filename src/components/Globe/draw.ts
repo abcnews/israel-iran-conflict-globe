@@ -62,7 +62,7 @@ export const drawLabel = (
     context.textBaseline = 'middle';
     context.textAlign = 'center';
     context.fillStyle = applyOpacity('#000000', opacity);
-    context.strokeStyle = applyOpacity('#ffffff', opacity * 0.75);
+    context.strokeStyle = applyOpacity('#ffffff', opacity * 0.6);
     context.miterLimit = 3;
     context.lineWidth = 3 * dpr;
     context.strokeText(label.label.toUpperCase(), x, y);
@@ -84,7 +84,7 @@ export const drawLabel = (
     context.textBaseline = 'middle';
     context.textAlign = 'center';
     context.fillStyle = applyOpacity('#000000', opacity);
-    context.strokeStyle = applyOpacity('#ffffff', opacity * 0.75);
+    context.strokeStyle = applyOpacity('#ffffff', opacity * 0.6);
     context.lineWidth = 3 * dpr;
     context.strokeText(label.label, x + labelTextWidth / 2 + 15 * dpr, y);
     context.fillText(label.label, x + labelTextWidth / 2 + 15 * dpr, y);
