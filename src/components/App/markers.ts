@@ -68,6 +68,13 @@ export const BBOX = {
     [33.70885639410537, 31.233065028894217],
     [34.98433330746869, 28.973183596643224]
   ] as BBox,
+  israelPalestineWide: [
+    [-68.80591027309652, 76.13728489303901],
+    [-68.80591027309652, -73.18793586041532],
+    [159.5568675584659, -73.18793586041532],
+    [159.5568675584659, 76.13728489303901],
+    [-68.80591027309652, 76.13728489303901]
+  ] as BBox,
   syria: [
     [31.689737918144147, 38.56989682734587],
     [31.689737918144147, 27.934122720381524],
@@ -130,6 +137,12 @@ const COUNTRY_LABELS = {
   iran: {
     center: [53.99194615403175, 33.549571719171794],
     label: 'Iran',
+    labelVariant: 'country',
+    markVariant: 'none'
+  } as Mark,
+  iraq: {
+    center: [43.43389647013157, 33.03696495172571],
+    label: 'Iraq',
     labelVariant: 'country',
     markVariant: 'none'
   } as Mark,
@@ -221,7 +234,7 @@ const CITY_LABELS = {
     markVariant: 'strike'
   } as Mark,
   haifa: {
-    center: [34.999167, 32.819167],
+    center: [35.03154284866059, 32.82102587987124],
     label: 'Haifa',
     labelVariant: 'city',
     markVariant: 'strike'
@@ -238,6 +251,12 @@ const CITY_LABELS = {
     label: 'Tehran',
     labelVariant: 'city',
     markVariant: 'dot'
+  } as Mark,
+  tehranStrike: {
+    center: [51.36813962138109, 35.70238478913372],
+    label: 'Tehran',
+    labelVariant: 'city',
+    markVariant: 'strike'
   } as Mark,
   beirut: {
     center: [35.53047699408555, 33.870145155827814],
@@ -286,7 +305,13 @@ export const markers: Marker[] = [
   {
     bbox: BBOX.middleEast,
     highlights: ['IL', 'IR'],
-    marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.iran]
+    marks: [
+      COUNTRY_LABELS.israel,
+      COUNTRY_LABELS.iran,
+      COUNTRY_LABELS.saudiArabia,
+      COUNTRY_LABELS.yemen,
+      COUNTRY_LABELS.iraq
+    ]
   },
 
   // << map changes to centre on Israel and zoom in closer (if higher zoom level looks okay?); Israel remains highlighted and labelled; remove highlight and label from Iran (won’t be visible anyway) >>
@@ -353,7 +378,7 @@ export const markers: Marker[] = [
   {
     bbox: BBOX.iranStrikes,
     highlights: ['IR'],
-    marks: [CITY_LABELS.tehran, CITY_LABELS.fordow, CITY_LABELS.natanz, CITY_LABELS.isfahan]
+    marks: [CITY_LABELS.tehranStrike, CITY_LABELS.fordow, CITY_LABELS.natanz, CITY_LABELS.isfahan]
   },
 
   // << shift focus of map across to Israel; add markers that show locations of key strike locations — exact locations TBC by Matt >>
@@ -369,9 +394,9 @@ export const markers: Marker[] = [
 
   // << zoom out map and centre on Russia; label and highlight Russia; add marker for Moscow >>
   {
-    bbox: BBOX.russia,
-    highlights: ['RU'],
-    marks: [COUNTRY_LABELS.russia, CITY_LABELS.moscow],
+    bbox: BBOX.israelPalestineWide,
+    highlights: [],
+    marks: [],
     rotate: 'east'
   },
 

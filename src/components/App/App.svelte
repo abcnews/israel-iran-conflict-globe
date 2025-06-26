@@ -4,7 +4,7 @@
   // Components
   import Globe from '../Globe/Globe.svelte';
 
-  import { BBOX, markers, type BBox, type Mark } from './markers';
+  import { markers, type BBox, type Mark } from './markers';
   import type { FeatureCollection } from 'geojson';
   import { createViewPolygon } from '../Globe/utils';
 
@@ -12,11 +12,11 @@
 
   const DEFAULT_DURATION = 1500;
 
-  let duration = 1500;
-  let autoRotation: 'west' | 'east' | 'none' = 'none';
+  let duration = DEFAULT_DURATION;
+  let autoRotation: 'west' | 'east' | 'none' = markers[0].rotate || 'none';
   let view: FeatureCollection = createViewPolygon(markers[0].bbox);
-  let marks: Mark[];
-  let highlights: string[];
+  let marks: Mark[] = markers[0].marks;
+  let highlights: string[] = markers[0].highlights;
 
   const markerChangeHandler = marker => {
     const data = markers[marker.idx || 0];
