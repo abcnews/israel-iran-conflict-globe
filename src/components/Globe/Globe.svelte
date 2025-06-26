@@ -37,7 +37,7 @@
   interface Props {
     background?: string;
     duration?: number;
-    shouldRotate?: boolean;
+    autoRotation?: 'east' | 'west' | 'none';
     view: FeatureCollection | undefined; // A GeoJSON feature collection of objects which should be entirely within view.
     marks: Mark[];
     highlights?: string[];
@@ -46,7 +46,7 @@
   let {
     background = 'hsl(0, 0%, 98%)',
     duration = 1250,
-    shouldRotate = false,
+    autoRotation = 'none',
     view,
     marks = [],
     highlights = []
@@ -63,6 +63,9 @@
     projection && context && geoPath(projection, context)
   );
 
+  // The current rotation if it's actually rotating
+  let rotation: [number, number] | undefined = $state();
+
   let width = $derived(clientWidth * (devicePixelRatio.current || 1));
   let height = $derived(clientHeight * (devicePixelRatio.current || 1));
 
@@ -75,10 +78,8 @@
     context.fillText('Preloading ABC Sans...', 100, 100);
   });
 
-  // let rotationWhenStarted: [number, number, number] = [0, 0, 0];
-
   const scaleTween = new Tween(0, { duration, easing: expoInOut });
-  const rotationTween = new Tween<[number, number]>([0, 0], { duration, easing: expoInOut });
+  let rotationTween = new Tween<[number, number]>([0, 0], { duration, easing: expoInOut });
 
   const OCEAN_COLOUR = '#173543';
   const LAND_COLOUR = '#5A5A5A';
@@ -86,8 +87,6 @@
   const GLOBE_OUTLINE_COLOR = '#CCCCCC';
   const HIGHLIGHT_COLOR = '#C3C3C3';
   const HIGHLIGHT_STROKE_COLOR = '#646464';
-  const ROTATION_TOP_SPEED: number = 0.025;
-  const SPIN_UP_TIME = 3000;
 
   // Merge all the geometries into a single 'land' geometry
   let land = topojson.merge(worldComplex, worldComplex.objects[topoObjKey].geometries);
@@ -157,7 +156,12 @@
     }
     // Update the tweened values
     scaleTween.target = nextScale;
-    rotationTween.target = [lambda, phi];
+    if (!rotation)
+      rotationTween.set([lambda, phi]).then(() => {
+        if (autoRotation !== 'none') {
+          rotate();
+        }
+      });
   });
 
   $effect(() => {
@@ -172,16 +176,40 @@
     });
   });
 
+  const rotate = () => {
+    let then = performance.now();
+    const loop = () => {
+      const now = performance.now();
+      let delta = (now - then) * (autoRotation === 'east' ? -1 : 1);
+      then = now;
+      if (autoRotation !== 'none') {
+        const [yaw, pitch] = projection.rotate();
+        rotation = [yaw + delta / 100, pitch];
+        requestAnimationFrame(loop);
+      } else {
+        const [pitch, yaw] = projection.rotate();
+        rotationTween = new Tween<[number, number]>([pitch, yaw], { duration, easing: expoInOut });
+        rotation = undefined;
+      }
+    };
+    requestAnimationFrame(loop);
+  };
+
   // Draw
   $effect(() => {
     if (!context || !path) return;
-
     // Update the projection with current scale and rotation values
     projection.scale(prefersRedudcedMotion ? scaleTween.target : scaleTween.current);
-    projection.rotate(prefersRedudcedMotion ? rotationTween.target : rotationTween.current);
+    if (rotation) {
+      projection.rotate(rotation);
+    } else {
+      projection.rotate(prefersRedudcedMotion ? rotationTween.target : rotationTween.current);
+    }
 
     // TODO: cross fade in low motion mode
-    const dataURL = canvas?.toDataURL();
+    if (prefersRedudcedMotion) {
+      const dataURL = canvas?.toDataURL();
+    }
 
     context.clearRect(0, 0, width, height);
 

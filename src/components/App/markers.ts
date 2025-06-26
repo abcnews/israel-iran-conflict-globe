@@ -13,6 +13,7 @@ type Marker = {
   bbox: BBox;
   highlights: string[]; // country codes
   marks: Mark[];
+  rotate?: 'east' | 'west' | 'none';
 };
 
 // Bounding boxes of each view. Re-used multiple times across the set of markers
@@ -370,7 +371,8 @@ export const markers: Marker[] = [
   {
     bbox: BBOX.russia,
     highlights: ['RU'],
-    marks: [COUNTRY_LABELS.russia, CITY_LABELS.moscow]
+    marks: [COUNTRY_LABELS.russia, CITY_LABELS.moscow],
+    rotate: 'east'
   },
 
   //<< move map to centre on China; label and highlight China; add marker for Beijing >>

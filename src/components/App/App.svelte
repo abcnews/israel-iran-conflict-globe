@@ -13,7 +13,7 @@
   const DEFAULT_DURATION = 1500;
 
   let duration = 1500;
-  let shouldRotate = false;
+  let autoRotation: 'west' | 'east' | 'none' = 'none';
   let view: FeatureCollection = createViewPolygon(markers[0].bbox);
   let marks: Mark[];
   let highlights: string[];
@@ -27,13 +27,13 @@
     view = createViewPolygon(bbox);
 
     duration = marker.duration || DEFAULT_DURATION;
-    shouldRotate = marker.rotate ? true : false;
+    autoRotation = data.rotate || 'none';
   };
 </script>
 
 <Scrollyteller panels={scrollyData.panels} onMarker={markerChangeHandler} layout={{ resizeInteractive: false }}>
   <div class="graphic">
-    <Globe {view} {marks} {highlights} {duration} {shouldRotate} background="#ffffff" />
+    <Globe {view} {marks} {highlights} {duration} {autoRotation} background="#ffffff" />
   </div>
 </Scrollyteller>
 
