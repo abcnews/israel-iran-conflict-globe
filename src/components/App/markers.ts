@@ -1,3 +1,6 @@
+import center from '@turf/center';
+import { bbox } from 'topojson-client';
+
 export type LabelVariant = 'city' | 'country' | 'sea';
 export type MarkVariant = 'none' | 'dot' | 'strike';
 export type Mark = {
@@ -203,6 +206,12 @@ const COUNTRY_LABELS = {
 };
 
 const CITY_LABELS = {
+  alUdeid: {
+    center: [51.318611, 25.118611],
+    label: 'Al Udeid air base',
+    labelVariant: 'city',
+    markVariant: 'strike'
+  } as Mark,
   fordow: {
     center: [50.9981, 34.8845],
     label: 'Fordow',
@@ -296,13 +305,13 @@ const CITY_LABELS = {
   } as Mark
 };
 
-export const markers: Marker[] = [
+export const markers: Record<string | number, Marker> = {
   //
   // IRANIAN ALLIES
   //
 
   //<< enter full-screen map; Israel and Iran are highlighted countries and labelled; depending on space and zoom level also label (but don’t highlight) Iraq and Syria >>
-  {
+  0: {
     bbox: BBOX.middleEast,
     highlights: ['IL', 'IR'],
     marks: [
@@ -310,64 +319,65 @@ export const markers: Marker[] = [
       COUNTRY_LABELS.iran,
       COUNTRY_LABELS.saudiArabia,
       COUNTRY_LABELS.yemen,
-      COUNTRY_LABELS.iraq
+      COUNTRY_LABELS.iraq,
+      COUNTRY_LABELS.syria
     ]
   },
 
   // << map changes to centre on Israel and zoom in closer (if higher zoom level looks okay?); Israel remains highlighted and labelled; remove highlight and label from Iran (won’t be visible anyway) >>
-  {
+  1: {
     bbox: BBOX.israelPalestine,
     highlights: ['IL'],
     marks: [COUNTRY_LABELS.israel, CITY_LABELS.telAviv]
   },
 
   // << add highlight and label to Gaza Strip  >>
-  {
+  2: {
     bbox: BBOX.israelPalestine,
     highlights: ['PS_0'],
     marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.gaza]
   },
 
   // << add highlight and label to West Bank >>
-  {
+  3: {
     bbox: BBOX.israelPalestine,
     highlights: ['PS_1', 'PS_0'],
     marks: [COUNTRY_LABELS.israel, CITY_LABELS.telAviv, COUNTRY_LABELS.gaza, COUNTRY_LABELS.westBank]
   },
 
   // << zoom out and centre map on Lebanon; keep Israel within the frame; add highlight and label to Lebanon; add marker for Beirut; remove labels from Gaza Strip and West Bank >>
-  {
+  4: {
     bbox: BBOX.israelPalestineLebanon,
     highlights: ['LB'],
     marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.lebanon, CITY_LABELS.beirut]
   },
 
   // << zoom out and centre map on Syria; keep Israel within the frame; add highlight and label to Syria; add marker for Damascus; remove marker for Beirut; keep label for Syria (if spacing allows) >>
-  {
+  5: {
     bbox: BBOX.syria,
     highlights: ['SY'],
     marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.syria, CITY_LABELS.damascus]
   },
 
   // << stay at same zoom level but move Yemen to centre of frame; add label and highlight to Yemen; add marker for Sanaa; include label for Saudi Arabia if possible >>
-  {
+  6: {
     bbox: BBOX.yemen,
     highlights: ['YE'],
     marks: [COUNTRY_LABELS.yemen, COUNTRY_LABELS.saudiArabia, CITY_LABELS.sanaa]
   },
 
   // << zoom out a bit and move back to centreing on Israel and Iran; highlights and labels on Israel, Iran, Syria, Lebanon, Yemen; Saudi Arabia also labelled if it fits >>
-  {
+  7: {
     bbox: BBOX.middleEastWider,
     highlights: ['IL', 'IR'],
     marks: [COUNTRY_LABELS.israel, COUNTRY_LABELS.iran, COUNTRY_LABELS.yemen, COUNTRY_LABELS.saudiArabia]
   },
 
   // << zoom into Iran and remove all other labels and highlights >>
-  {
+  8: {
     bbox: BBOX.iran,
     highlights: ['IR'],
-    marks: [CITY_LABELS.tehran]
+    marks: [CITY_LABELS.tehran, COUNTRY_LABELS.iran]
   },
 
   //
@@ -375,14 +385,14 @@ export const markers: Marker[] = [
   //
 
   // << add markers that show locations of key strike locations — exact locations TBC by Matt >>
-  {
+  9: {
     bbox: BBOX.iranStrikes,
     highlights: ['IR'],
     marks: [CITY_LABELS.tehranStrike, CITY_LABELS.fordow, CITY_LABELS.natanz, CITY_LABELS.isfahan]
   },
 
   // << shift focus of map across to Israel; add markers that show locations of key strike locations — exact locations TBC by Matt >>
-  {
+  10: {
     bbox: BBOX.israelPalestine,
     highlights: ['IL'],
     marks: [CITY_LABELS.telAvivStrike, CITY_LABELS.beerSheva, CITY_LABELS.haifa]
@@ -393,7 +403,7 @@ export const markers: Marker[] = [
   //
 
   // << zoom out map and centre on Russia; label and highlight Russia; add marker for Moscow >>
-  {
+  11: {
     bbox: BBOX.israelPalestineWide,
     highlights: [],
     marks: [],
@@ -401,18 +411,28 @@ export const markers: Marker[] = [
   },
 
   //<< move map to centre on China; label and highlight China; add marker for Beijing >>
-  {
+  12: {
     bbox: BBOX.china,
     highlights: ['CN'],
     marks: [COUNTRY_LABELS.china, CITY_LABELS.beijing]
   },
 
   //<< move map to centre on US; label and highlight United States; add marker for Washington DC >>
-  {
+  13: {
     bbox: BBOX.us,
     highlights: ['US'],
     marks: [COUNTRY_LABELS.us, CITY_LABELS.washington]
+  },
+  14: {
+    bbox: BBOX.middleEast,
+    highlights: ['IR', 'IL'],
+    marks: [CITY_LABELS.fordow, CITY_LABELS.isfahan, CITY_LABELS.natanz]
+  },
+  15: {
+    bbox: BBOX.iranStrikes,
+    highlights: ['QA'],
+    marks: [CITY_LABELS.alUdeid]
   }
-];
+};
 
 export const ALL_LABELS = { ...COUNTRY_LABELS, ...CITY_LABELS };
