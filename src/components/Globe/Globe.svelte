@@ -59,15 +59,12 @@
   let context: CanvasRenderingContext2D | undefined | null = $derived(canvas && canvas.getContext('2d'));
   let clientWidth: number = $state(0);
   let clientHeight: number = $state(0);
-  let path: ReturnType<typeof geoPath> | undefined | null = $derived(
-    projection && context && geoPath(projection, context)
-  );
+  let width = $derived(clientWidth * (devicePixelRatio.current || 1));
+  let height = $derived(clientHeight * (devicePixelRatio.current || 1));
+  let path: ReturnType<typeof geoPath> | undefined = $derived(context ? geoPath(projection, context) : undefined);
 
   // The current rotation if it's actually rotating
   let rotation: [number, number] | undefined = $state();
-
-  let width = $derived(clientWidth * (devicePixelRatio.current || 1));
-  let height = $derived(clientHeight * (devicePixelRatio.current || 1));
 
   // Pre-load fonts
   $effect(() => {
@@ -128,6 +125,7 @@
       [0, 0],
       [width, height]
     ]);
+    projection.translate([width / 2, height / 2]);
   });
 
   // Calculate the new scale and rotation
